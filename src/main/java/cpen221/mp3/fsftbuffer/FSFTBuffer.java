@@ -2,13 +2,16 @@ package cpen221.mp3.fsftbuffer;
 
 public class FSFTBuffer<T extends Bufferable> {
 
+
     /* the default buffer size is 32 objects */
     public static final int DSIZE = 32;
 
     /* the default timeout value is 3600s */
     public static final int DTIMEOUT = 3600;
 
-    /* TODO: Implement this datatype */
+    private int timeToLive;
+    private int capacity;
+
 
     /**
      * Create a buffer with a fixed capacity and a timeout value.
@@ -20,7 +23,8 @@ public class FSFTBuffer<T extends Bufferable> {
      *                 be in the buffer before it times out
      */
     public FSFTBuffer(int capacity, int timeout) {
-        // TODO: implement this constructor
+        this.timeToLive = timeout;
+        this.capacity = capacity;
     }
 
     /**
