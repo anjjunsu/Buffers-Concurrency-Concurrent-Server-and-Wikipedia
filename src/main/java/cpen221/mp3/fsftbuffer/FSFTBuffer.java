@@ -1,7 +1,11 @@
 package cpen221.mp3.fsftbuffer;
 
-public class FSFTBuffer<T extends Bufferable> {
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
+public class FSFTBuffer<T extends Bufferable> {
+    // Remove
+    // Can we remove private int capacity?
 
     /* the default buffer size is 32 objects */
     public static final int DSIZE = 32;
@@ -9,6 +13,7 @@ public class FSFTBuffer<T extends Bufferable> {
     /* the default timeout value is 3600s */
     public static final int DTIMEOUT = 3600;
 
+    private BlockingQueue<T> requests;
     private int timeToLive;
     private int capacity;
 
@@ -25,6 +30,8 @@ public class FSFTBuffer<T extends Bufferable> {
     public FSFTBuffer(int capacity, int timeout) {
         this.timeToLive = timeout;
         this.capacity = capacity;
+
+        requests = new LinkedBlockingQueue<>(capacity);
     }
 
     /**
@@ -40,8 +47,7 @@ public class FSFTBuffer<T extends Bufferable> {
      * object to make room for the new object.
      */
     public boolean put(T t) {
-        // TODO: implement this method
-        return false;
+        return requests.add(t);
     }
 
     /**
