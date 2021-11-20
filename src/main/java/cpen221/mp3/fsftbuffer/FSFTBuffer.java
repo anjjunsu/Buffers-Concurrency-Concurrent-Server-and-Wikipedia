@@ -1,5 +1,7 @@
 package cpen221.mp3.fsftbuffer;
 
+import java.util.*;
+
 public class FSFTBuffer<T extends Bufferable> {
 
     /* the default buffer size is 32 objects */
@@ -8,7 +10,10 @@ public class FSFTBuffer<T extends Bufferable> {
     /* the default timeout value is 3600s */
     public static final int DTIMEOUT = 3600;
 
-    /* TODO: Implement this datatype */
+    private LinkedHashMap<T, String> items;
+    private int timeout;
+    private int capacity;
+
 
     /**
      * Create a buffer with a fixed capacity and a timeout value.
@@ -20,7 +25,8 @@ public class FSFTBuffer<T extends Bufferable> {
      *                 be in the buffer before it times out
      */
     public FSFTBuffer(int capacity, int timeout) {
-        // TODO: implement this constructor
+        this.timeout = timeout;
+        this.capacity = capacity;
     }
 
     /**
@@ -36,7 +42,6 @@ public class FSFTBuffer<T extends Bufferable> {
      * object to make room for the new object.
      */
     public boolean put(T t) {
-        // TODO: implement this method
         return false;
     }
 
