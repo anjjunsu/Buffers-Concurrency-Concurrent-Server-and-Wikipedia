@@ -34,6 +34,7 @@ public class FSFTBuffer<T extends Bufferable> {
      *                 be in the buffer before it times out
      */
     public FSFTBuffer(int capacity, int timeout) {
+
         this.timeout = timeout / 1000;
         this.capacity = capacity;
         currentTime = 0;
