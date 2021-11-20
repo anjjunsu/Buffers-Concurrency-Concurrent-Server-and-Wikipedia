@@ -3,6 +3,8 @@ package cpen221.mp3.fsftbuffer;
 import java.util.*;
 
 public class FSFTBuffer<T extends Bufferable> {
+    // Remove
+    // Can we remove private int capacity?
 
     /* the default buffer size is 32 objects */
     public static final int DSIZE = 32;
@@ -12,6 +14,7 @@ public class FSFTBuffer<T extends Bufferable> {
 
     private LinkedHashMap<T, String> items;
     private int timeout;
+
     private int capacity;
 
 
