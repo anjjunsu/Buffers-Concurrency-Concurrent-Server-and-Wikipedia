@@ -17,7 +17,6 @@ public class FSFTBuffer<T extends Bufferable> {
     private int timeToLive;
     private int capacity;
 
-
     /**
      * Create a buffer with a fixed capacity and a timeout value.
      * Objects in the buffer that have not been refreshed within the
