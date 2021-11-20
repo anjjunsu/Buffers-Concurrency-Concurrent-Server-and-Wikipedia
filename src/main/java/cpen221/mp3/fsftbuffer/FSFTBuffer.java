@@ -1,19 +1,29 @@
 package cpen221.mp3.fsftbuffer;
 
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class FSFTBuffer<T extends Bufferable> {
-
+    public static final int ONE_SEC = 1000;
     /* the default buffer size is 32 objects */
     public static final int DSIZE = 32;
 
     /* the default timeout value is 3600s */
     public static final int DTIMEOUT = 3600;
 
+    private Timer bufferTimer;
+
     private int capacity;
     private int timeout;
+    private int currentTime;
 
     private ConcurrentHashMap<String, T> buffer;
+    private ConcurrentHashMap<String, Integer> objectTimeRecord;
+
     /**
      * Create a buffer with a fixed capacity and a timeout value.
      * Objects in the buffer that have not been refreshed within the
@@ -24,10 +34,15 @@ public class FSFTBuffer<T extends Bufferable> {
      *                 be in the buffer before it times out
      */
     public FSFTBuffer(int capacity, int timeout) {
-        this.timeout = timeout;
+        this.timeout = timeout / 1000;
         this.capacity = capacity;
-
+        currentTime = 0;
+        bufferTimer = new Timer();
         buffer = new ConcurrentHashMap<>();
+        objectTimeRecord = new ConcurrentHashMap<>();
+
+        // start timer
+        bufferTimer.schedule(new TimeHelper(), 0, ONE_SEC);
     }
 
     /**
@@ -35,7 +50,6 @@ public class FSFTBuffer<T extends Bufferable> {
      */
     public FSFTBuffer() {
         this(DSIZE, DTIMEOUT);
-        buffer = new ConcurrentHashMap<>();
     }
 
     /**
@@ -43,13 +57,25 @@ public class FSFTBuffer<T extends Bufferable> {
      * If the buffer is full then remove the least recently accessed
      * object to make room for the new object.
      */
-    public boolean put(T t) {
+    synchronized public boolean put(T t) {
         if (buffer.size() >= capacity) {
-            // remove stale one
+            removeLeastUsed();
         }
         buffer.put(t.id(), t);
+        objectTimeRecord.put(t.id(), currentTime);
 
         return true;
+    }
+
+    /**
+     *
+     */
+    synchronized private void removeLeastUsed() {
+        String leastUsedID = Collections.min(objectTimeRecord.entrySet(), Comparator.comparing(
+            Map.Entry::getValue)).getKey();
+
+        objectTimeRecord.remove(leastUsedID);
+        buffer.remove(leastUsedID);
     }
 
     /**
@@ -57,12 +83,12 @@ public class FSFTBuffer<T extends Bufferable> {
      * @return the object that matches the identifier from the
      * buffer
      */
-    public T get(String id) {
-        /* TODO: change this */
-        /* Do not return null. Throw a suitable checked exception when an object
-            is not in the cache. You can add the checked exception to the method
-            signature. */
-        return null;
+    synchronized public T get(String id) throws ObjectDoesNotExistException {
+        if (!buffer.containsKey(id)) {
+            throw new ObjectDoesNotExistException();
+        }
+
+        return buffer.get(id);
     }
 
     /**
@@ -73,9 +99,14 @@ public class FSFTBuffer<T extends Bufferable> {
      * @param id the identifier of the object to "touch"
      * @return true if successful and false otherwise
      */
-    public boolean touch(String id) {
-        /* TODO: Implement this method */
-        return false;
+    synchronized public boolean touch(String id) {
+        if (!buffer.containsKey(id)) {
+            return false;
+        }
+
+        objectTimeRecord.computeIfPresent(id, (k, v) -> v = currentTime);
+
+        return true;
     }
 
     /**
@@ -86,8 +117,29 @@ public class FSFTBuffer<T extends Bufferable> {
      * @param t the object to update
      * @return true if successful and false otherwise
      */
-    public boolean update(T t) {
-        /* TODO: implement this method */
-        return false;
+    synchronized public boolean update(T t) {
+        if (!buffer.containsKey(t.id())) {
+            return false;
+        }
+        buffer.replace(t.id(), buffer.get(t.id()), t);
+        objectTimeRecord.computeIfPresent(t.id(), (k, v) -> v = currentTime);
+
+        return true;
+    }
+
+    class TimeHelper extends TimerTask {
+
+        @Override
+        synchronized public void run() {
+            currentTime++;
+
+            // remove out-dated objects in every second
+            for (String id : objectTimeRecord.keySet()) {
+                if (objectTimeRecord.get(id) + timeout >= currentTime) {
+                    objectTimeRecord.remove(id);
+                    buffer.remove(id);
+                }
+            }
+        }
     }
 }
