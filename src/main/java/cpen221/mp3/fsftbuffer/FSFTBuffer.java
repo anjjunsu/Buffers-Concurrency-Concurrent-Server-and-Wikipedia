@@ -1,11 +1,8 @@
 package cpen221.mp3.fsftbuffer;
 
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class FSFTBuffer<T extends Bufferable> {
-    // Remove
-    // Can we remove private int capacity?
 
     /* the default buffer size is 32 objects */
     public static final int DSIZE = 32;
@@ -13,10 +10,10 @@ public class FSFTBuffer<T extends Bufferable> {
     /* the default timeout value is 3600s */
     public static final int DTIMEOUT = 3600;
 
-    private BlockingQueue<T> requests;
-    private int timeToLive;
     private int capacity;
+    private int timeout;
 
+    private ConcurrentHashMap<String, T> buffer;
     /**
      * Create a buffer with a fixed capacity and a timeout value.
      * Objects in the buffer that have not been refreshed within the
@@ -27,10 +24,10 @@ public class FSFTBuffer<T extends Bufferable> {
      *                 be in the buffer before it times out
      */
     public FSFTBuffer(int capacity, int timeout) {
-        this.timeToLive = timeout;
+        this.timeout = timeout;
         this.capacity = capacity;
 
-        requests = new LinkedBlockingQueue<>(capacity);
+        buffer = new ConcurrentHashMap<>();
     }
 
     /**
@@ -38,6 +35,7 @@ public class FSFTBuffer<T extends Bufferable> {
      */
     public FSFTBuffer() {
         this(DSIZE, DTIMEOUT);
+        buffer = new ConcurrentHashMap<>();
     }
 
     /**
@@ -46,7 +44,12 @@ public class FSFTBuffer<T extends Bufferable> {
      * object to make room for the new object.
      */
     public boolean put(T t) {
-        return requests.add(t);
+        if (buffer.size() >= capacity) {
+            // remove stale one
+        }
+        buffer.put(t.id(), t);
+
+        return true;
     }
 
     /**
