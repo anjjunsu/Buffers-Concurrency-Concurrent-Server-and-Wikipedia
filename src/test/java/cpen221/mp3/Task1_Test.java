@@ -1,6 +1,7 @@
 package cpen221.mp3;
 
 import cpen221.mp3.fsftbuffer.FSFTBuffer;
+import cpen221.mp3.fsftbuffer.ObjectDoesNotExistException;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -10,7 +11,8 @@ import java.util.List;
 import static org.junit.Assert.*;
 
 public class Task1_Test {
-    public static final int CAPACITY = 5;
+    public static final int FIVE_CAPACITY = 5;
+    public static final int TEN_CAPACITY = 10;
     public static final int FIVE_SEC_TIME_TO_LIVE = 5;
     public static final int TEN_SEC_TIME_TO_LIVE = 10;
     public static final int ONE_SEC = 1000;
@@ -19,7 +21,8 @@ public class Task1_Test {
     // Test buffer put and get (in very simple case)
     @Test
     public void testPut_Get() {
-        FSFTBuffer<Bufferable_int_Testing> bufferPutGet = new FSFTBuffer<>(CAPACITY, FIVE_SEC_TIME_TO_LIVE);
+        FSFTBuffer<Bufferable_int_Testing> bufferPutGet =
+            new FSFTBuffer<>(FIVE_CAPACITY, FIVE_SEC_TIME_TO_LIVE);
         Bufferable_int_Testing bufferaleInt = new Bufferable_int_Testing(10);
         bufferPutGet.put(bufferaleInt);
         try {
@@ -33,7 +36,8 @@ public class Task1_Test {
     // Test whether buffer remove element when time-out
     @Test
     public void testTimeOut() {
-        FSFTBuffer<Bufferable_int_Testing> timeOutBuffer = new FSFTBuffer<>(CAPACITY, FIVE_SEC_TIME_TO_LIVE);
+        FSFTBuffer<Bufferable_int_Testing> timeOutBuffer =
+            new FSFTBuffer<>(FIVE_CAPACITY, FIVE_SEC_TIME_TO_LIVE);
         Bufferable_int_Testing ten = new Bufferable_int_Testing(10);
 
         timeOutBuffer.put(ten);
@@ -57,7 +61,7 @@ public class Task1_Test {
     @Test
     public void testGetBeforeTimeout() {
         FSFTBuffer<Bufferable_text_testing> notYetTimeoutBuffer =
-            new FSFTBuffer<>(CAPACITY, FIVE_SEC_TIME_TO_LIVE);
+            new FSFTBuffer<>(FIVE_CAPACITY, FIVE_SEC_TIME_TO_LIVE);
         Bufferable_text_testing testing_text =
             new Bufferable_text_testing("This is Title", "I am content of the text", 97);
 
@@ -82,7 +86,8 @@ public class Task1_Test {
     // https://www.youtube.com/watch?v=Q33SoblaZbU
     @Test
     public void SISTAR__TOUCH_MY_BODY() throws InterruptedException {
-        FSFTBuffer<Bufferable_int_Testing> touch_buffer = new FSFTBuffer<>(CAPACITY, FIVE_SEC_TIME_TO_LIVE);
+        FSFTBuffer<Bufferable_int_Testing> touch_buffer =
+            new FSFTBuffer<>(FIVE_CAPACITY, FIVE_SEC_TIME_TO_LIVE);
         Bufferable_int_Testing testing_int = new Bufferable_int_Testing(5);
 
         touch_buffer.put(testing_int);
@@ -103,14 +108,67 @@ public class Task1_Test {
             fail("Fail: [FSFT touch test] touch did not extend the life of the object");
         }
     }
+
     // Test update method works
-
-    // Test Buffer capacity works?
-
-    // Inserting order maintained?
     @Test
-    public void testInsertingOrder() {
-        FSFTBuffer<Bufferable_int_Testing> bufferUnderTest = new FSFTBuffer<>(10, 3);
+    public void testUpdate() {
+        FSFTBuffer<Bufferable_text_testing> updateBuffer =
+            new FSFTBuffer<>(FIVE_CAPACITY, FIVE_SEC_TIME_TO_LIVE);
+        Bufferable_text_testing original =
+            new Bufferable_text_testing("I am title", "I am original text", 8);
+        Bufferable_text_testing updatedText =
+            new Bufferable_text_testing("I am title", "I am updated text", 9);
+
+        updateBuffer.put(original);
+
+        updateBuffer.update(updatedText);
+
+        try {
+            Assert.assertEquals(updatedText, updateBuffer.get(original.id()));
+        } catch (ObjectDoesNotExistException e) {
+            System.out.println(
+                "[FSFT TEST FAIL : testUpdate] || object in the buffer did not updated");
+        }
+    }
+
+    // Test update method also 'touches' the object
+    @Test
+    public void testUpdateAlsoTouch() {
+        FSFTBuffer<Bufferable_text_testing> updateBuffer2 =
+            new FSFTBuffer<>(FIVE_CAPACITY, FIVE_SEC_TIME_TO_LIVE);
+        Bufferable_text_testing original2 =
+            new Bufferable_text_testing("I am title", "I am original text", 8);
+        Bufferable_text_testing updatedText2 =
+            new Bufferable_text_testing("I am title", "I am updated text", 9);
+
+        updateBuffer2.put(original2);
+
+        // Sleep for 3 seconds
+        try {
+            Thread.sleep(3 * ONE_SEC);
+        } catch (InterruptedException e) {
+            fail("InterruptedException while attempt to sleep");
+        }
+
+        updateBuffer2.update(updatedText2);
+
+        // Sleep for extra 5 seconds
+        try {
+            Thread.sleep(5 * ONE_SEC);
+        } catch (InterruptedException e) {
+            fail("InterruptedException while attempt to sleep");
+        }
+
+        try {
+            Assert.assertEquals(updatedText2, updateBuffer2.get(original2.id()));
+        } catch (ObjectDoesNotExistException e) {
+            fail("[FSFT TEST FAIL : testUpdateAlsoTouch] Update did not extend the object's life");
+        }
+    }
+
+    @Test
+    public void testCapacity() {
+        FSFTBuffer<Bufferable_int_Testing> bufferUnderTest = new FSFTBuffer<>(TEN_CAPACITY, 3);
         List<Bufferable_int_Testing> contents = new ArrayList<>();
 
         for (int i = 1; i <= 10; i++) {
@@ -126,6 +184,22 @@ public class Task1_Test {
         } catch (Exception e) {
             fail("[FSFT Buffer : testInsertOrder] TEST FAIL : No Exception Expected");
         }
+    }
+
+    // Test buffer properly remove the oldest object when buffer is full and insert one more
+    @Test
+    public void testByeByeOld() {
+        FSFTBuffer<Bufferable_int_Testing> byebyeOld =
+            new FSFTBuffer<>(FIVE_CAPACITY, TEN_SEC_TIME_TO_LIVE);
+
+        Bufferable_int_Testing one = new Bufferable_int_Testing(1);
+        Bufferable_int_Testing two = new Bufferable_int_Testing(2);
+        Bufferable_int_Testing three = new Bufferable_int_Testing(3);
+        Bufferable_int_Testing four = new Bufferable_int_Testing(4);
+        Bufferable_int_Testing five = new Bufferable_int_Testing(6);
+        Bufferable_int_Testing six = new Bufferable_int_Testing(7);
+        Bufferable_int_Testing seven = new Bufferable_int_Testing(8);
+
     }
 }
 
