@@ -33,6 +33,46 @@ public class Task1_Test {
         }
     }
 
+    // Test get method updates the time
+    @Test
+    public void testGetUpdatesTime() {
+        FSFTBuffer<Bufferable_text_testing> getUpdatesBuffer =
+            new FSFTBuffer<>(2, FIVE_SEC_TIME_TO_LIVE);
+        Bufferable_text_testing toBeGetted =
+            new Bufferable_text_testing("I am blog title", "I am blog content", 970507);
+
+        getUpdatesBuffer.put(toBeGetted);
+
+        // First, sleep for 3 sec
+        try {
+            Thread.sleep(3 * ONE_SEC);
+        } catch (InterruptedException e) {
+            fail("[FSFT TEST FAIL : test GetUpdatesTime] is interrupted while trying to sleep");
+        }
+
+        // Get. it will extend the life of the object
+        try {
+            Assert.assertEquals(toBeGetted, getUpdatesBuffer.get(toBeGetted.id()));
+        } catch (ObjectDoesNotExistException e) {
+            fail("[FSFT TEST FAIL : test GetUpdatesTime] it failed to get an object");
+        }
+
+        // Then, sleep extra 4 sec. This exceeds timeout
+        try {
+            Thread.sleep(4 * ONE_SEC);
+        } catch (InterruptedException e) {
+            fail("[FSFT TEST FAIL : test GetUpdatesTime] is interrupted while trying to sleep");
+        }
+
+        // Then, try to get that object again
+        try {
+            Assert.assertEquals(toBeGetted, getUpdatesBuffer.get(toBeGetted.id()));
+        } catch (ObjectDoesNotExistException e) {
+            fail("[FSFT TEST FAIL : test GetUpdatesTime] it failed to get an object");
+        }
+    }
+
+
     // Test whether buffer remove element when time-out
     @Test
     public void testTimeOut() {
@@ -233,13 +273,6 @@ public class Task1_Test {
             fail("[FSFT TEST FAIL : ByeByeOld] The sixth object should be inserted to buffer");
         }
 
-        // And test second one is still alibe
-        try {
-            Assert.assertEquals(two, byebyeOld.get(two.id()));
-        } catch (ObjectDoesNotExistException e) {
-            fail("[FSFT TEST FAIL : ByeByeOld] The second object should still alive");
-        }
-
         // And add one more; 7th
         byebyeOld.put(seven);
         Thread.sleep(ONE_SEC);
@@ -255,22 +288,11 @@ public class Task1_Test {
 
         // 7th object should be inserted properly
         try {
-            Assert.assertEquals(six, byebyeOld.get(six.id()));
+            Assert.assertEquals(seven, byebyeOld.get(seven.id()));
         } catch (ObjectDoesNotExistException e) {
             fail("[FSFT TEST FAIL : ByeByeOld] The second object should still alive");
         }
-
-        // Additionally, object in the buffer should be three, four, five, six, seven
-        try {
-            for (int i = 3; i <= 7; ++i) {
-                Assert.assertEquals(String.valueOf(i), byebyeOld.get(String.valueOf(i)).id());
-            }
-        } catch (Exception e) {
-            fail("[FSFT TEST FAIL : ByeByeOld] Unexpected exception during reading the buffer");
-        }
     }
-
-    
 }
 
 
