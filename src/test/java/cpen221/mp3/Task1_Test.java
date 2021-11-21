@@ -188,7 +188,7 @@ public class Task1_Test {
 
     // Test buffer properly remove the oldest object when buffer is full and insert one more
     @Test
-    public void testByeByeOld() {
+    public void testByeByeOld() throws InterruptedException {
         FSFTBuffer<Bufferable_int_Testing> byebyeOld =
             new FSFTBuffer<>(FIVE_CAPACITY, TEN_SEC_TIME_TO_LIVE);
 
@@ -200,6 +200,65 @@ public class Task1_Test {
         Bufferable_int_Testing six = new Bufferable_int_Testing(7);
         Bufferable_int_Testing seven = new Bufferable_int_Testing(8);
 
+        // Add first five objects to full the capacity of buffer
+        // And sleep 1 seconds between put
+        byebyeOld.put(one);
+        Thread.sleep(ONE_SEC);
+        byebyeOld.put(two);
+        Thread.sleep(ONE_SEC);
+        byebyeOld.put(three);
+        Thread.sleep(ONE_SEC);
+        byebyeOld.put(four);
+        Thread.sleep(ONE_SEC);
+        byebyeOld.put(five);
+        Thread.sleep(ONE_SEC);
+
+        // Add 6th object
+        byebyeOld.put(six);
+        Thread.sleep(ONE_SEC);
+
+        // Test first one is removed
+        try {
+            byebyeOld.get(one.id());
+            fail(
+                "[FSFT TEST FAIL : ByeByeOld] The oldest one is not removed. When capacity is full");
+        } catch (ObjectDoesNotExistException e) {
+            // PASS. The oldest one is removed.
+        }
+
+        // six should be inserted properly
+        try {
+            Assert.assertEquals(six, byebyeOld.get(six.id()));
+        } catch (ObjectDoesNotExistException e) {
+            fail("[FSFT TEST FAIL : ByeByeOld] The sixth object should be inserted to buffer");
+        }
+
+        // And test second one is still alibe
+        try {
+            Assert.assertEquals(two, byebyeOld.get(two.id()));
+        } catch (ObjectDoesNotExistException e) {
+            fail("[FSFT TEST FAIL : ByeByeOld] The second object should still alive");
+        }
+
+        // And add one more; 7th
+        byebyeOld.put(seven);
+        Thread.sleep(ONE_SEC);
+
+        // Now, second object should be removed
+        try {
+            byebyeOld.get(two.id());
+            fail(
+                "[FSFT TEST FAIL : ByeByeOld] The oldest one is not removed. When capacity is full");
+        } catch (ObjectDoesNotExistException e) {
+            // PASS. The oldest object is removed.
+        }
+
+        // 7th object should be inserted properly
+        try {
+            Assert.assertEquals(six, byebyeOld.get(six.id()));
+        } catch (ObjectDoesNotExistException e) {
+            fail("[FSFT TEST FAIL : ByeByeOld] The second object should still alive");
+        }
     }
 }
 
