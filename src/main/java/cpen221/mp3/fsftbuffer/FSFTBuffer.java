@@ -11,7 +11,7 @@ public class FSFTBuffer<T extends Bufferable> {
 
     /* Representation Invariant */
     // capacity is positive integer
-    // timeout is positive integer (Unit : milliseconds)
+    // timeout is positive integer (Unit : seconds)
     // buffer and objectTimeRecord does not contain null
     // no duplicates in the buffer
     // no duplicates in the objectTimeRecord
@@ -50,7 +50,7 @@ public class FSFTBuffer<T extends Bufferable> {
      */
     public FSFTBuffer(int capacity, int timeout) {
 
-        this.timeout = timeout * 1000;
+        this.timeout = timeout;
         this.capacity = capacity;
         currentTime = 0;
         bufferTimer = new Timer();
@@ -147,11 +147,15 @@ public class FSFTBuffer<T extends Bufferable> {
 
         @Override
         synchronized public void run() {
-            currentTime += ONE_SEC;
+            ++currentTime;
 
             // remove out-dated objects in every second
             for (String id : objectTimeRecord.keySet()) {
-                if (objectTimeRecord.get(id) + timeout >= currentTime) {
+
+                // remove
+                int time_debugging = objectTimeRecord.get(id) + timeout;
+
+                if (objectTimeRecord.get(id) + timeout < currentTime) {
                     objectTimeRecord.remove(id);
                     buffer.remove(id);
                 }
