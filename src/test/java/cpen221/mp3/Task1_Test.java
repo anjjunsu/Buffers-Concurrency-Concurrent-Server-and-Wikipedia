@@ -259,7 +259,18 @@ public class Task1_Test {
         } catch (ObjectDoesNotExistException e) {
             fail("[FSFT TEST FAIL : ByeByeOld] The second object should still alive");
         }
+
+        // Additionally, object in the buffer should be three, four, five, six, seven
+        try {
+            for (int i = 3; i <= 7; ++i) {
+                Assert.assertEquals(String.valueOf(i), byebyeOld.get(String.valueOf(i)).id());
+            }
+        } catch (Exception e) {
+            fail("[FSFT TEST FAIL : ByeByeOld] Unexpected exception during reading the buffer");
+        }
     }
+
+    
 }
 
 
