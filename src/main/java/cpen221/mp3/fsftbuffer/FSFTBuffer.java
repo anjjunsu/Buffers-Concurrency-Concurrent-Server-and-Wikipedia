@@ -8,6 +8,21 @@ import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class FSFTBuffer<T extends Bufferable> {
+
+    /* Representation Invariant */
+    // capacity > 0
+    // timeout > 0 (Unit : seconds)
+    // buffer and objectTimeRecord does not contain null
+    // no duplicates in the buffer
+    // no duplicates in the objectTimeRecord
+    // size of the buffer and objectTimeRecord do not exceed the capacity
+    // If object is inserted in buffer, objectTimeRecord must also contains that object's information and vice versa
+
+    /* Abstract Function */
+    // FSFT buffer holds limited number of inserted object for a limited time
+    // buffer is the map that the key is the ID of bufferable object and the value is bufferable object
+    // objectTimeRecord is the map that the key is the ID of bufferable object in buffer and the values represents the inserted time
+
     public static final int ONE_SEC = 1000;
     /* the default buffer size is 32 objects */
     public static final int DSIZE = 32;
