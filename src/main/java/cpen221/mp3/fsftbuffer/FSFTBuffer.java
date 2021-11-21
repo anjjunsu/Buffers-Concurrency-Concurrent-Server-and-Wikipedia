@@ -50,7 +50,7 @@ public class FSFTBuffer<T extends Bufferable> {
      */
     public FSFTBuffer(int capacity, int timeout) {
 
-        this.timeout = timeout / 1000;
+        this.timeout = timeout * 1000;
         this.capacity = capacity;
         currentTime = 0;
         bufferTimer = new Timer();
@@ -147,7 +147,7 @@ public class FSFTBuffer<T extends Bufferable> {
 
         @Override
         synchronized public void run() {
-            currentTime++;
+            currentTime += ONE_SEC;
 
             // remove out-dated objects in every second
             for (String id : objectTimeRecord.keySet()) {
