@@ -1,22 +1,43 @@
 package cpen221.mp3.fsftbuffer;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class FSFTBuffer<T extends Bufferable> {
-    // Remove
-    // Can we remove private int capacity?
 
+    /* Representation Invariant */
+    // capacity > 0
+    // timeout > 0 (Unit : seconds)
+    // buffer and objectTimeRecord does not contain null
+    // no duplicates in the buffer
+    // no duplicates in the objectTimeRecord
+    // size of the buffer and objectTimeRecord do not exceed the capacity
+    // If object is inserted in buffer, objectTimeRecord must also contains that object's information and vice versa
+
+    /* Abstract Function */
+    // FSFT buffer holds limited number of inserted object for a limited time
+    // buffer is the map that the key is the ID of bufferable object and the value is bufferable object
+    // objectTimeRecord is the map that the key is the ID of bufferable object in buffer and the values represents the inserted time
+
+    public static final int ONE_SEC = 1000;
     /* the default buffer size is 32 objects */
     public static final int DSIZE = 32;
 
     /* the default timeout value is 3600s */
     public static final int DTIMEOUT = 3600;
 
-    private LinkedHashMap<T, String> items;
-    private int timeout;
+    private Timer bufferTimer;
 
     private int capacity;
+    private int timeout;
+    private int currentTime;
 
+    private ConcurrentHashMap<String, T> buffer;
+    private ConcurrentHashMap<String, Integer> objectTimeRecord;
 
     /**
      * Create a buffer with a fixed capacity and a timeout value.
@@ -28,8 +49,16 @@ public class FSFTBuffer<T extends Bufferable> {
      *                 be in the buffer before it times out
      */
     public FSFTBuffer(int capacity, int timeout) {
+
         this.timeout = timeout;
         this.capacity = capacity;
+        currentTime = 0;
+        bufferTimer = new Timer();
+        buffer = new ConcurrentHashMap<>();
+        objectTimeRecord = new ConcurrentHashMap<>();
+
+        // start timer
+        bufferTimer.schedule(new TimeHelper(), 0, ONE_SEC);
     }
 
     /**
@@ -44,8 +73,25 @@ public class FSFTBuffer<T extends Bufferable> {
      * If the buffer is full then remove the least recently accessed
      * object to make room for the new object.
      */
-    public boolean put(T t) {
-        return false;
+    public synchronized boolean put(T t) {
+        if (buffer.size() >= capacity) {
+            removeLeastUsed();
+        }
+        buffer.put(t.id(), t);
+        objectTimeRecord.put(t.id(), currentTime);
+
+        return true;
+    }
+
+    /**
+     *
+     */
+    private synchronized void removeLeastUsed() {
+        String leastUsedID = Collections.min(objectTimeRecord.entrySet(), Comparator.comparing(
+            Map.Entry::getValue)).getKey();
+
+        objectTimeRecord.remove(leastUsedID);
+        buffer.remove(leastUsedID);
     }
 
     /**
@@ -53,12 +99,14 @@ public class FSFTBuffer<T extends Bufferable> {
      * @return the object that matches the identifier from the
      * buffer
      */
-    public T get(String id) {
-        /* TODO: change this */
-        /* Do not return null. Throw a suitable checked exception when an object
-            is not in the cache. You can add the checked exception to the method
-            signature. */
-        return null;
+    public synchronized T get(String id) throws ObjectDoesNotExistException {
+        if (!buffer.containsKey(id)) {
+            throw new ObjectDoesNotExistException();
+        }
+
+        updateObjectTime(id);
+
+        return buffer.get(id);
     }
 
     /**
@@ -69,9 +117,23 @@ public class FSFTBuffer<T extends Bufferable> {
      * @param id the identifier of the object to "touch"
      * @return true if successful and false otherwise
      */
-    public boolean touch(String id) {
-        /* TODO: Implement this method */
-        return false;
+    public synchronized boolean touch(String id) {
+        if (!buffer.containsKey(id)) {
+            return false;
+        }
+
+        updateObjectTime(id);
+
+        return true;
+    }
+
+    /**
+     * When the object in the buffer is used, update the time record of the object
+     * That object will timeout at current time + timeout
+     * @param id the ID of the object we want to update the time
+     */
+    private void updateObjectTime(String id) {
+        objectTimeRecord.computeIfPresent(id, (k, v) -> v = currentTime);
     }
 
     /**
@@ -82,8 +144,32 @@ public class FSFTBuffer<T extends Bufferable> {
      * @param t the object to update
      * @return true if successful and false otherwise
      */
-    public boolean update(T t) {
-        /* TODO: implement this method */
-        return false;
+    public synchronized boolean update(T t) {
+        if (!buffer.containsKey(t.id())) {
+            return false;
+        }
+        buffer.replace(t.id(), buffer.get(t.id()), t);
+        updateObjectTime(t.id());
+        return true;
+    }
+
+    class TimeHelper extends TimerTask {
+
+        @Override
+        public synchronized void run() {
+            currentTime++;
+
+            // remove out-dated objects in every second
+            for (String id : objectTimeRecord.keySet()) {
+
+                // remove
+                int time_debugging = objectTimeRecord.get(id) + timeout;
+
+                if (objectTimeRecord.get(id) + timeout < currentTime) {
+                    objectTimeRecord.remove(id);
+                    buffer.remove(id);
+                }
+            }
+        }
     }
 }
