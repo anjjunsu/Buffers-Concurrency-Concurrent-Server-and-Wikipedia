@@ -10,8 +10,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class FSFTBuffer<T extends Bufferable> {
 
     /* Representation Invariant */
-    // capacity is positive integer
-    // timeout is positive integer (Unit : seconds)
+    // capacity > 0
+    // timeout > 0 (Unit : seconds)
     // buffer and objectTimeRecord does not contain null
     // no duplicates in the buffer
     // no duplicates in the objectTimeRecord
@@ -73,7 +73,7 @@ public class FSFTBuffer<T extends Bufferable> {
      * If the buffer is full then remove the least recently accessed
      * object to make room for the new object.
      */
-    synchronized public boolean put(T t) {
+    public synchronized boolean put(T t) {
         if (buffer.size() >= capacity) {
             removeLeastUsed();
         }
@@ -86,7 +86,7 @@ public class FSFTBuffer<T extends Bufferable> {
     /**
      *
      */
-    synchronized private void removeLeastUsed() {
+    private synchronized void removeLeastUsed() {
         String leastUsedID = Collections.min(objectTimeRecord.entrySet(), Comparator.comparing(
             Map.Entry::getValue)).getKey();
 
@@ -99,7 +99,7 @@ public class FSFTBuffer<T extends Bufferable> {
      * @return the object that matches the identifier from the
      * buffer
      */
-    synchronized public T get(String id) throws ObjectDoesNotExistException {
+    public synchronized T get(String id) throws ObjectDoesNotExistException {
         if (!buffer.containsKey(id)) {
             throw new ObjectDoesNotExistException();
         }
@@ -115,7 +115,7 @@ public class FSFTBuffer<T extends Bufferable> {
      * @param id the identifier of the object to "touch"
      * @return true if successful and false otherwise
      */
-    synchronized public boolean touch(String id) {
+    public synchronized boolean touch(String id) {
         if (!buffer.containsKey(id)) {
             return false;
         }
@@ -133,7 +133,7 @@ public class FSFTBuffer<T extends Bufferable> {
      * @param t the object to update
      * @return true if successful and false otherwise
      */
-    synchronized public boolean update(T t) {
+     public synchronized boolean update(T t) {
         if (!buffer.containsKey(t.id())) {
             return false;
         }
@@ -146,8 +146,8 @@ public class FSFTBuffer<T extends Bufferable> {
     class TimeHelper extends TimerTask {
 
         @Override
-        synchronized public void run() {
-            ++currentTime;
+        public synchronized void run() {
+            currentTime++;
 
             // remove out-dated objects in every second
             for (String id : objectTimeRecord.keySet()) {
