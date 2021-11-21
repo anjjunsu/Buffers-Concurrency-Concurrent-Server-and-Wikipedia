@@ -104,6 +104,8 @@ public class FSFTBuffer<T extends Bufferable> {
             throw new ObjectDoesNotExistException();
         }
 
+        updateObjectTime(id);
+
         return buffer.get(id);
     }
 
@@ -120,9 +122,18 @@ public class FSFTBuffer<T extends Bufferable> {
             return false;
         }
 
-        objectTimeRecord.computeIfPresent(id, (k, v) -> v = currentTime);
+        updateObjectTime(id);
 
         return true;
+    }
+
+    /**
+     * When the object in the buffer is used, update the time record of the object
+     * That object will timeout at current time + timeout
+     * @param id the ID of the object we want to update the time
+     */
+    private void updateObjectTime(String id) {
+        objectTimeRecord.computeIfPresent(id, (k, v) -> v = currentTime);
     }
 
     /**
@@ -133,13 +144,12 @@ public class FSFTBuffer<T extends Bufferable> {
      * @param t the object to update
      * @return true if successful and false otherwise
      */
-     public synchronized boolean update(T t) {
+    public synchronized boolean update(T t) {
         if (!buffer.containsKey(t.id())) {
             return false;
         }
         buffer.replace(t.id(), buffer.get(t.id()), t);
-        objectTimeRecord.computeIfPresent(t.id(), (k, v) -> v = currentTime);
-
+        updateObjectTime(t.id());
         return true;
     }
 
