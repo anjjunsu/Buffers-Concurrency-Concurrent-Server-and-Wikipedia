@@ -132,7 +132,7 @@ public class FSFTBuffer<T extends Bufferable> {
      * That object will timeout at current time + timeout
      * @param id the ID of the object we want to update the time
      */
-    private void updateObjectTime(String id) {
+    private synchronized void updateObjectTime(String id) {
         objectTimeRecord.computeIfPresent(id, (k, v) -> v = currentTime);
     }
 
