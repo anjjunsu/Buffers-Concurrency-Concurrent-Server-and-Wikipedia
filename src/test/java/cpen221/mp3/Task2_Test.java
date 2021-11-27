@@ -89,21 +89,24 @@ public class Task2_Test {
         Bufferable_int_Testing second = new Bufferable_int_Testing(2);
         Bufferable_int_Testing third = new Bufferable_int_Testing(3);
         Bufferable_int_Testing fourth = new Bufferable_int_Testing(4);
+        Bufferable_int_Testing fifth = new Bufferable_int_Testing(5);
 
         Thread t1 = new Thread(new Put_Thread(sharedBuffer, first));
         Thread t2 = new Thread(new Put_Thread(sharedBuffer, second));
         Thread t3 = new Thread(new Put_Thread(sharedBuffer, third));
         Thread t4 = new Thread(new Put_Thread(sharedBuffer, fourth));
+        Thread t5 = new Thread(new Put_Thread(sharedBuffer, fifth));
 
         t1.start();
         // Sleep for 2 sec after put first object in the buffer
         try {
-            Thread.sleep(2*ONE_SEC);
+            Thread.sleep(ONE_SEC);
         } catch (InterruptedException e) {
             fail("[Task2_Test] No exception expected when Thread.sleep()");
         }
         // Put the rest objects in the buffer
         t2.start();
+        Thread.sleep(ONE_SEC);
         t3.start();
         t4.start();
 
@@ -113,6 +116,7 @@ public class Task2_Test {
         t3.join();
         t4.join();
 
+        // First object should have been removed
         try {
             sharedBuffer.get(first.id());
             fail("[Task2_Test] first inserted object should have removed");
@@ -121,5 +125,16 @@ public class Task2_Test {
             // Test Passed
         }
 
+        // Put one more extra object to the buffer
+        t5.start();
+        t5.join();
+
+        // Second object should have been removed
+        try {
+            sharedBuffer.get(second.id());
+            fail("[Task2_Test] second inserted object should have removed");
+        } catch (ObjectDoesNotExistException e) {
+            // Test Passed
+        }
     }
 }
