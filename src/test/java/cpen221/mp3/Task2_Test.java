@@ -6,8 +6,6 @@ import cpen221.mp3.fsftbuffer.ObjectDoesNotExistException;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.rmi.NoSuchObjectException;
-
 import static org.junit.Assert.*;
 
 public class Task2_Test {
@@ -17,6 +15,8 @@ public class Task2_Test {
     public static final int FIVE_SEC_TIME_TO_LIVE = 5;
     public static final int TEN_SEC_TIME_TO_LIVE = 10;
     public static final int ONE_SEC = 1000;
+
+    private volatile static Throwable exc = null;
 
     // Make the thread class implements Runnable that puts object in the buffer
     private class Put_Thread implements Runnable {
@@ -49,7 +49,7 @@ public class Task2_Test {
             try {
                 buffer.get(object.id());
             } catch (ObjectDoesNotExistException e) {
-                System.out.println("Exception thrown when the thread trying to get an object" + object.id() + "from the buffer");
+                exc = e;
             }
         }
     }
@@ -138,41 +138,33 @@ public class Task2_Test {
         }
     }
 
-//    // Test Get thread is trying to get an object from the buffer before the any object is inserted
-//    @Test
-//    public void testTooEarlyToGet() {
-//        FSFTBuffer<Bufferable> sharedBuffer = new FSFTBuffer<>(THREE_CAPACITY, TEN_SEC_TIME_TO_LIVE);
-//        Bufferable_text_testing testing = new Bufferable_text_testing("HELLO", "Please. Save me", 11);
-//
-//        Thread getThread = new Thread(new Get_Thread(sharedBuffer, testing));
-//        Thread putThread = new Thread(new Put_Thread(sharedBuffer, testing));
-//
-//        Thread.UncaughtExceptionHandler handler = new Thread.UncaughtExceptionHandler() {
-//            @Override
-//            public void uncaughtException(Thread t, Throwable e) {
-//                System.out.println("Thread throws an exception when trying to get an object from the buffer" + e);
-//                try {
-//                    throw new Exception();
-//                } catch (Exception ex) {
-//
-//                }
-//            }
-//        };
-//
-//        getThread.setUncaughtExceptionHandler(handler);
-//
-//        try {
-//            getThread.start();
-//            Thread.sleep(2*ONE_SEC);
-//            putThread.start();
-//
-//            getThread.join();
-//            putThread.join();
-//            fail("[Task2 testTooEarlyToGet] There should be an exception");
-//        } catch (Exception e) {
-//            // Exception expected
-//            // Test passed
-//        }
-//
-//    }
+    // Test Get thread is trying to get an object from the buffer before the any object is inserted
+    @Test
+    public void testTooEarlyToGet() {
+        FSFTBuffer<Bufferable> sharedBuffer = new FSFTBuffer<>(THREE_CAPACITY, TEN_SEC_TIME_TO_LIVE);
+        Bufferable_text_testing testing = new Bufferable_text_testing("HELLO", "Please. Save me", 11);
+
+        Thread getThread = new Thread(new Get_Thread(sharedBuffer, testing));
+        Thread putThread = new Thread(new Put_Thread(sharedBuffer, testing));
+
+        // expecting an exception from the getThread
+        try {
+            getThread.start();
+            Thread.sleep(2*ONE_SEC);
+            putThread.start();
+
+            getThread.join();
+            putThread.join();
+
+            if (exc == null) {
+                fail("[Task2 testTooEarlyToGet] expected an exception when getThread trying to get an object form the buffer");
+            }
+        } catch (Exception e) {
+            // Exception expected
+            // Test passed
+        }
+
+
+
+    }
 }
