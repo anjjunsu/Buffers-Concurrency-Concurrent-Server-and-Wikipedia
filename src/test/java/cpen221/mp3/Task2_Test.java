@@ -137,4 +137,42 @@ public class Task2_Test {
             // Test Passed
         }
     }
+
+//    // Test Get thread is trying to get an object from the buffer before the any object is inserted
+//    @Test
+//    public void testTooEarlyToGet() {
+//        FSFTBuffer<Bufferable> sharedBuffer = new FSFTBuffer<>(THREE_CAPACITY, TEN_SEC_TIME_TO_LIVE);
+//        Bufferable_text_testing testing = new Bufferable_text_testing("HELLO", "Please. Save me", 11);
+//
+//        Thread getThread = new Thread(new Get_Thread(sharedBuffer, testing));
+//        Thread putThread = new Thread(new Put_Thread(sharedBuffer, testing));
+//
+//        Thread.UncaughtExceptionHandler handler = new Thread.UncaughtExceptionHandler() {
+//            @Override
+//            public void uncaughtException(Thread t, Throwable e) {
+//                System.out.println("Thread throws an exception when trying to get an object from the buffer" + e);
+//                try {
+//                    throw new Exception();
+//                } catch (Exception ex) {
+//
+//                }
+//            }
+//        };
+//
+//        getThread.setUncaughtExceptionHandler(handler);
+//
+//        try {
+//            getThread.start();
+//            Thread.sleep(2*ONE_SEC);
+//            putThread.start();
+//
+//            getThread.join();
+//            putThread.join();
+//            fail("[Task2 testTooEarlyToGet] There should be an exception");
+//        } catch (Exception e) {
+//            // Exception expected
+//            // Test passed
+//        }
+//
+//    }
 }
