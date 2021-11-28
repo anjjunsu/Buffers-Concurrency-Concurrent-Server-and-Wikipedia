@@ -16,7 +16,7 @@ public class Task2_Test {
     public static final int TEN_SEC_TIME_TO_LIVE = 10;
     public static final int ONE_SEC = 1000;
 
-    private volatile static Throwable exc = null;
+    private volatile static Throwable exc_tooEarlyToGet = null;
 
     // Make the thread class implements Runnable that puts object in the buffer
     private class Put_Thread implements Runnable {
@@ -49,7 +49,7 @@ public class Task2_Test {
             try {
                 buffer.get(object.id());
             } catch (ObjectDoesNotExistException e) {
-                exc = e;
+                exc_tooEarlyToGet = e;
             }
         }
     }
@@ -156,15 +156,23 @@ public class Task2_Test {
             getThread.join();
             putThread.join();
 
-            if (exc == null) {
+            if (exc_tooEarlyToGet == null) {
                 fail("[Task2 testTooEarlyToGet] expected an exception when getThread trying to get an object form the buffer");
             }
         } catch (Exception e) {
             // Exception expected
             // Test passed
         }
+    }
 
-
+    // Test if time record is updated properly when many threads are trying to access the same buffer
+    @Test
+    public void chaosFromThreads() {
+        FSFTBuffer<Bufferable_text_testing> sharedBuffer = new FSFTBuffer<>(THREE_CAPACITY, FIVE_SEC_TIME_TO_LIVE);
+        Bufferable_text_testing JunsuAn = new Bufferable_text_testing("Junsu An", "I love(...)", 25);
+        Bufferable_text_testing TaeyangBaek = new Bufferable_text_testing("John Baek", "I am superman", 22);
+        Bufferable_text_testing JonghaLee = new Bufferable_text_testing("Jake Lee", "I am smart", 20);
+        Bufferable_text_testing coffee = new Bufferable_text_testing("Coffee", "Best coffee is Iced-Americano", 11);
 
     }
 }
