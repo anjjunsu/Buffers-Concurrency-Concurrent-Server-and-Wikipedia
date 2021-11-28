@@ -16,14 +16,14 @@ public class FSFTBuffer<T extends Bufferable> {
     // no duplicates in the buffer
     // no duplicates in the objectTimeRecord
     // size of the buffer and objectTimeRecord do not exceed the capacity
-    // If object is inserted in buffer, objectTimeRecord must also contains that object's information and vice versa
+    // If object is inserted in buffer, objectTimeRecord must also contain that object's information and vice versa
 
     /* Abstract Function */
     // FSFT buffer holds limited number of inserted object for a limited time
     // buffer is the map that the key is the ID of bufferable object and the value is bufferable object
     // objectTimeRecord is the map that the key is the ID of bufferable object in buffer and the values represents the inserted time
 
-    public static final int ONE_SEC = 1000;
+    public static final int ONE_SEC = 1000; // 1000 is millisecond
     /* the default buffer size is 32 objects */
     public static final int DSIZE = 32;
 
