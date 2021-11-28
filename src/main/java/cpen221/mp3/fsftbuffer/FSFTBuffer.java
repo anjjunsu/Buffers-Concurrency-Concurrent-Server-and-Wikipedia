@@ -23,6 +23,9 @@ public class FSFTBuffer<T extends Bufferable> {
     // buffer is the map that the key is the ID of bufferable object and the value is bufferable object
     // objectTimeRecord is the map that the key is the ID of bufferable object in buffer and the values represents the inserted time
 
+    /* Thread Safety */
+    //
+
     public static final int ONE_SEC = 1000;
     /* the default buffer size is 32 objects */
     public static final int DSIZE = 32;
@@ -133,7 +136,7 @@ public class FSFTBuffer<T extends Bufferable> {
      * @param id the ID of the object we want to update the time
      */
     private synchronized void updateObjectTime(String id) {
-        objectTimeRecord.computeIfPresent(id, (k, v) -> v = currentTime);
+        objectTimeRecord.computeIfPresent(id, (object, TimeRecord) -> TimeRecord = currentTime);
     }
 
     /**
