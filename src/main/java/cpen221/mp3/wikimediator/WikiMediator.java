@@ -1,5 +1,7 @@
 package cpen221.mp3.wikimediator;
 
+import cpen221.mp3.fsftbuffer.FSFTBuffer;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,8 +19,15 @@ public class WikiMediator {
 
      */
 
+    /**
+     * Create a WikiMediator cache with capacity and stalenessInterval
+     *
+     * @param capacity           the number of pages to be cached
+     * @param stalenessInterval  the number of seconds after which a page in the cache
+     *                           will become stale
+     */
     public WikiMediator(int capacity, int stalenessInterval) {
-
+        FSFTBuffer<Page> buffer = new FSFTBuffer<>(capacity, stalenessInterval);
     }
 
     public List<String> search(String query, int limit) {
