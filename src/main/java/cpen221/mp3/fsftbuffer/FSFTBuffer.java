@@ -1,3 +1,18 @@
+package cpen221.mp3.fsftbuffer;
+
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.ConcurrentHashMap;
+
+public class FSFTBuffer<T extends Bufferable> {
+
+    /* Representation Invariant */
+    // capacity > 0
+    // timeout > 0 (Unit : seconds)
+    // buffer and objectTimeRecord does not contain null
     // no duplicates in the buffer
     // no duplicates in the objectTimeRecord
     // size of the buffer and objectTimeRecord do not exceed the capacity
@@ -8,19 +23,12 @@
     // buffer is the map that the key is the ID of bufferable object and the value is bufferable object
     // objectTimeRecord is the map that the key is the ID of bufferable object in buffer and the values represents the inserted time
 
-    public static final int ONE_SEC = 1000; // 1000 is millisecond
+    /* Thread Safety */
+    //
 
+    public static final int ONE_SEC = 1000;
     /* the default buffer size is 32 objects */
     public static final int DSIZE = 32;
-
-    wdfwf
-
-    wfw
-    dw
-    fwd
-    fwd
-    fwd
-    fdw
 
     /* the default timeout value is 3600s */
     public static final int DTIMEOUT = 3600;
@@ -128,7 +136,7 @@
      * @param id the ID of the object we want to update the time
      */
     private synchronized void updateObjectTime(String id) {
-        objectTimeRecord.computeIfPresent(id, (k, v) -> v = currentTime);
+        objectTimeRecord.computeIfPresent(id, (object, TimeRecord) -> TimeRecord = currentTime);
     }
 
     /**
