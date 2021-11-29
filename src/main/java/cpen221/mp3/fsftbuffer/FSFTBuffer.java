@@ -16,7 +16,7 @@ public class FSFTBuffer<T extends Bufferable> {
     // no duplicates in the buffer
     // no duplicates in the objectTimeRecord
     // size of the buffer and objectTimeRecord do not exceed the capacity
-    // If object is inserted in buffer, objectTimeRecord must also contains that object's information and vice versa
+    // If object is inserted in buffer, objectTimeRecord must also contain that object's information and vice versa
 
     /* Abstract Function */
     // FSFT buffer holds limited number of inserted object for a limited time
