@@ -13,6 +13,15 @@
     /* the default buffer size is 32 objects */
     public static final int DSIZE = 32;
 
+    wdfwf
+
+    wfw
+    dw
+    fwd
+    fwd
+    fwd
+    fdw
+
     /* the default timeout value is 3600s */
     public static final int DTIMEOUT = 3600;
 
