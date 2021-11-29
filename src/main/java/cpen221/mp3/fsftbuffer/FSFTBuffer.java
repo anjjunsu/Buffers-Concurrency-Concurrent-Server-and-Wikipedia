@@ -1,18 +1,3 @@
-package cpen221.mp3.fsftbuffer;
-
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.ConcurrentHashMap;
-
-public class FSFTBuffer<T extends Bufferable> {
-
-    /* Representation Invariant */
-    // capacity > 0
-    // timeout > 0 (Unit : seconds)
-    // buffer and objectTimeRecord does not contain null
     // no duplicates in the buffer
     // no duplicates in the objectTimeRecord
     // size of the buffer and objectTimeRecord do not exceed the capacity
