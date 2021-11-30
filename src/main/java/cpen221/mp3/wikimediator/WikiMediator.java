@@ -1,7 +1,11 @@
 package cpen221.mp3.wikimediator;
 
-public class WikiMediator {
+import cpen221.mp3.fsftbuffer.FSFTBuffer;
+import org.fastily.jwiki.core.Wiki;
 
+public class WikiMediator {
+    private FSFTBuffer cache;
+    private Wiki wiki;
     /* TODO: Implement this datatype
 
         You must implement the methods with the exact signatures
@@ -13,5 +17,14 @@ public class WikiMediator {
         values like null.
 
      */
+    public WikiMediator(int capacity, int stalenessInterval) {
+        cache = new FSFTBuffer(capacity, stalenessInterval);
+        wiki = new Wiki.Builder().withDomain("en.wikipedia.org").build();
+
+    }
+
+    public String getPage(String pageTitle) {
+        return wiki.getPageText(pageTitle);
+    }
 
 }

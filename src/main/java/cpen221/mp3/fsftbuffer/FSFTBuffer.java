@@ -12,16 +12,19 @@ public class FSFTBuffer<T extends Bufferable> {
     /* Representation Invariant */
     // capacity > 0
     // timeout > 0 (Unit : seconds)
-    // buffer and objectTimeRecord does not contain null
-    // no duplicates in the buffer
-    // no duplicates in the objectTimeRecord
-    // size of the buffer and objectTimeRecord do not exceed the capacity
-    // If object is inserted in buffer, objectTimeRecord must also contains that object's information and vice versa
+    // Buffer and objectTimeRecord does not contain null
+    // No duplicates in the buffer
+    // No duplicates in the objectTimeRecord
+    // Size of the buffer and objectTimeRecord do not exceed the capacity
+    // If object is inserted in buffer,
+    // objectTimeRecord must also contains that object's information and vice versa
 
     /* Abstract Function */
     // FSFT buffer holds limited number of inserted object for a limited time
-    // buffer is the map that the key is the ID of bufferable object and the value is bufferable object
-    // objectTimeRecord is the map that the key is the ID of bufferable object in buffer and the values represents the inserted time
+    // Buffer is the map that the key is the ID of bufferable object
+    // and the value is bufferable object
+    // ObjectTimeRecord is the map that the key is the ID of bufferable object in buffer
+    // and the values represents the inserted time
 
     /* Thread Safety */
     //
@@ -35,8 +38,8 @@ public class FSFTBuffer<T extends Bufferable> {
 
     private Timer bufferTimer;
 
-    private int capacity;
-    private int timeout;
+    private final int capacity;
+    private final int timeout;
     private int currentTime;
 
     private ConcurrentHashMap<String, T> buffer;
@@ -90,8 +93,8 @@ public class FSFTBuffer<T extends Bufferable> {
      *
      */
     private synchronized void removeLeastUsed() {
-        String leastUsedID = Collections.min(objectTimeRecord.entrySet(), Comparator.comparing(
-            Map.Entry::getValue)).getKey();
+        String leastUsedID = Collections.min(objectTimeRecord.entrySet(),
+            Comparator.comparing(Map.Entry::getValue)).getKey();
 
         objectTimeRecord.remove(leastUsedID);
         buffer.remove(leastUsedID);
