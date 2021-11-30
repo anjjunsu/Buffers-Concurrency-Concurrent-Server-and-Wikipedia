@@ -34,8 +34,9 @@ An `FSFTBuffer` supports the following operations:
 * `FSFTBuffer(int capacity, int timeout)`: Create an instance of `FSFTBuffer` with a given `capacity` and with `timeout` representing the duration of time (in seconds) for which an object should be retained in the buffer (unless it is removed because of capacity limitations).
 
 * `boolean put(T t)`: add a value to the buffer and return true if the value was successfully added and false otherwise. When a value is added to an instance of `FSFTBuffer` and the buffer is full then the new object should remove the least recently used object. (Note that objects that have timed out should be remove first.)
-* `T get(String id)`: Retrieve an object from the buffer. When an object is retrieved at time **timeInSeconds** from the buffer, it is "used" at that time and it will now timeout at the absolute time **timeInSeconds + timeout**.
+* `T get(String id)`: Retrieve an object from the buffer. When an object is retrieved at time **timeInSeconds** from the buffer, it is "used" at that time.
 * `boolean touch(String id)`: This method, when called at time **timeInSeconds**, updates the absolute timeout time for the object with `id` to **timeInSeconds + timeout**. This method returns **true** if an object was touched and **false** if no object with `id` exists in the buffer.
+* `boolean update(T t)`: Update the an object stored in the buffer. When called at time **timeInSeconds**, if an object with the same id as `t` exists in the buffer then replace that object with `t` and also set the absolute timeout time for the object to **timeInSeconds + timeout**.
 
 An **FSFTBuffer** can be used to implement a data cache.
 
@@ -45,10 +46,10 @@ In this task, you should ensure that your implementation of `FSFTBuffer` can han
 
 ## Task 3: `WikiMediator`
 
-For this task, you should implement a mediator service for Wikipedia. This service will access Wikipedia (using the `JWiki` API) to obtain pages and other relevant information. 
+For this task, you should implement a mediator service for Wikipedia. This service will access Wikipedia (using the `JWiki` API) to obtain pages and other relevant information.
 
-* The mediator service should **cache** Wikipedia pages to minimize network accesses. 
-The cache capacity (number of pages to be cached) as well as the staleness interval (the number of **seconds** after which a page in the cache will become stale) will be provided as arguments to the constructor for this class:
+* The mediator service should **cache** Wikipedia pages to minimize network accesses.
+  The cache capacity (number of pages to be cached) as well as the staleness interval (the number of **seconds** after which a page in the cache will become stale) will be provided as arguments to the constructor for this class:
 ```java
 public WikiMediator(int capacity, int stalenessInterval)
 ```
@@ -59,7 +60,7 @@ A `WikiMediator` instance should support the following basic operations:
 1. `List<String> search(String query, int limit)`: Given a `query`, return up to `limit` page titles that match the query string (per Wikipedia's search service).
 2. `String getPage(String pageTitle)`: Given a `pageTitle`, return the text associated with the Wikipedia page that matches `pageTitle`.
 3. `List<String> zeitgeist(int limit)`: Return the most common `String`s used in `search` and `getPage` requests, with items being sorted in non-increasing count order. When many requests have been made, return only `limit` items.
-4. `List<String> trending(int timeLimitInSeconds, int maxItems)`: Similar to `zeitgeist()`, but returns the most frequent requests made in the last `timeLimitInSeconds` seconds. This method should report at most `maxItems` of the most frequent requests. 
+4. `List<String> trending(int timeLimitInSeconds, int maxItems)`: Similar to `zeitgeist()`, but returns the most frequent requests made in the last `timeLimitInSeconds` seconds. This method should report at most `maxItems` of the most frequent requests.
 5. `int windowedPeakLoad(int timeWindowInSeconds)`: What is the maximum number of requests seen in any time window of a given length? The request count is to include all requests made using the public API of `WikiMediator`, and therefore counts all **five** methods listed as **basic page requests**. (There is one more request that appears later, `shortestPath`, and that should also be included if you do implement that method.)
 6. `int windowedPeakLoad()`: This is an overloaded version of the previous method where the time window defaults to 30 seconds. (Calls to this method also affect peak load.)
 
@@ -92,7 +93,7 @@ As examples, here are strings for `search` and `zeitgeist`:
 
 The `id` field is an identifier used by the client to disambiguate multiple responses and should be included as-is in the response.
 
-The response should also be a JSON-formatted string with a `status` field that should have the value `"success"` if the operation was successfully executed, and a `response` field that contains the results. 
+The response should also be a JSON-formatted string with a `status` field that should have the value `"success"` if the operation was successfully executed, and a `response` field that contains the results.
 If the operation was not successful then the `status` field should have the value `"failed"` and the `response` field can include a suitable error message explaining the failure.
 
 For example, the response to the simple search with "Barack Obama" should yield:
@@ -105,7 +106,7 @@ For example, the response to the simple search with "Barack Obama" should yield:
 }
 ```
 
-The JSON-formatted request may include an optional `timeout` field that indicates how long (in seconds) the service should wait for a response from Wikipedia before declaring the operation as having failed. 
+The JSON-formatted request may include an optional `timeout` field that indicates how long (in seconds) the service should wait for a response from Wikipedia before declaring the operation as having failed.
 For example, the following request
 
 ```json
@@ -129,7 +130,7 @@ may fail because no Wikipedia response was received in 1 second resulting in a `
 
 ### Survivability Across Sessions
 
-You should implement a system where the statistical information associated with the `WikiMediator` instance can be stored in the local filesystem, and that such data can be reloaded each time your service is started. 
+You should implement a system where the statistical information associated with the `WikiMediator` instance can be stored in the local filesystem, and that such data can be reloaded each time your service is started.
 You **should** use the directory `local` for all the files that you create.
 
 To shutdown a server, one would send a request like this:
@@ -162,7 +163,7 @@ List<String> shortestPath(String pageTitle1, String pageTitle2, int timeout) thr
 ```
 * If a path exists, a list of page titles (including the starting and ending pages) on the shortest path should be returned.
 * If there are two or more shortest paths then the one with the lowest lexicographical value is to be returned.
-* If no path exists between two pages, an empty `List` should be returned. 
+* If no path exists between two pages, an empty `List` should be returned.
 
 The `timeout` parameter is the duration - in seconds - that is permitted for this operation, otherwise a [`TimeoutException`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/TimeoutException.html) should be thrown.
 
@@ -186,16 +187,16 @@ and such a request *could* have the following response (this example may not be 
   "response": ["Philosophy", "African Americans", "Barack Obama"]
 ```
 
-that indicates that there is a two-step path from "Philosophy" to "Barack Obama" via "African Americans". 
+that indicates that there is a two-step path from "Philosophy" to "Barack Obama" via "African Americans".
 
 If there is no path then `"status"` should be `"success"` and `"response"` should be the empty array `[]`. In the case of a timeout, `"status"` should be `"failed"` and `"response"` would be `"Operation timed out"`.
 
 ## Assessment Hints
 
 - You should write specs, rep invariants, abstraction functions, and thread-safety conditions.
-- You should test your code and achieve: 
-   - 95% lines of code coverage;
-   - 85% branch coverage.
+- You should test your code and achieve:
+  - 95% lines of code coverage;
+  - 85% branch coverage.
 - Grading is holistic but here is an approximation:
   - Each task is worth one point.
   - An extra one point is for writing clean and modular code.
