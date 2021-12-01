@@ -1,13 +1,15 @@
 package cpen221.mp3.wikimediator;
 
 import cpen221.mp3.fsftbuffer.FSFTBuffer;
+import org.fastily.jwiki.core.Wiki;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class WikiMediator {
-
-    /* TODO: Implement this datatype
+    private FSFTBuffer cache;
+    private Wiki wiki;
+    /*
 
         You must implement the methods with the exact signatures
         as provided in the statement for this mini-project.
@@ -27,7 +29,9 @@ public class WikiMediator {
      *                           will become stale
      */
     public WikiMediator(int capacity, int stalenessInterval) {
-        FSFTBuffer<Page> buffer = new FSFTBuffer<>(capacity, stalenessInterval);
+        cache = new FSFTBuffer<>(capacity, stalenessInterval);
+        wiki = new Wiki.Builder().withDomain("en.wikipedia.org").build();
+
     }
 
     public List<String> search(String query, int limit) {
