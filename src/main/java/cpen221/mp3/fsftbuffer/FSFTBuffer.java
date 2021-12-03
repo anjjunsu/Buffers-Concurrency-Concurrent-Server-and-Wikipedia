@@ -43,7 +43,8 @@ public class FSFTBuffer<T extends Bufferable> {
     private int currentTime;
 
     private ConcurrentHashMap<String, T> buffer;
-    private ConcurrentHashMap<String, Integer> objectTimeRecord;
+    private ConcurrentHashMap<String, Integer> timeoutRecord;
+    private ConcurrentHashMap<String, Integer> lastUsedTimeRecord;
 
     /**
      * Create a buffer with a fixed capacity and a timeout value.
@@ -61,9 +62,10 @@ public class FSFTBuffer<T extends Bufferable> {
         currentTime = 0;
         bufferTimer = new Timer();
         buffer = new ConcurrentHashMap<>();
-        objectTimeRecord = new ConcurrentHashMap<>();
-
-        // start timer
+        timeoutRecord = new ConcurrentHashMap<>();
+        lastUsedTimeRecord = new ConcurrentHashMap<>();
+        // Start Timer.
+        // Starting time = 0, unit of time flow = 1 second
         bufferTimer.schedule(new TimeHelper(), 0, ONE_SEC);
     }
 
@@ -84,8 +86,8 @@ public class FSFTBuffer<T extends Bufferable> {
             removeLeastUsed();
         }
         buffer.put(t.id(), t);
-        objectTimeRecord.put(t.id(), currentTime);
-
+        timeoutRecord.put(t.id(), currentTime);
+        lastUsedTimeRecord.put(t.id(), currentTime);
         return true;
     }
 
@@ -93,10 +95,11 @@ public class FSFTBuffer<T extends Bufferable> {
      *
      */
     private synchronized void removeLeastUsed() {
-        String leastUsedID = Collections.min(objectTimeRecord.entrySet(),
+        String leastUsedID = Collections.min(lastUsedTimeRecord.entrySet(),
             Comparator.comparing(Map.Entry::getValue)).getKey();
 
-        objectTimeRecord.remove(leastUsedID);
+        lastUsedTimeRecord.remove(leastUsedID);
+        timeoutRecord.remove(leastUsedID);
         buffer.remove(leastUsedID);
     }
 
@@ -110,7 +113,7 @@ public class FSFTBuffer<T extends Bufferable> {
             throw new ObjectDoesNotExistException();
         }
 
-        updateObjectTime(id);
+        updateLastUsedTime(id);
 
         return buffer.get(id);
     }
@@ -128,18 +131,9 @@ public class FSFTBuffer<T extends Bufferable> {
             return false;
         }
 
-        updateObjectTime(id);
+        updateTimeout(id);
 
         return true;
-    }
-
-    /**
-     * When the object in the buffer is used, update the time record of the object
-     * That object will timeout at current time + timeout
-     * @param id the ID of the object we want to update the time
-     */
-    private synchronized void updateObjectTime(String id) {
-        objectTimeRecord.computeIfPresent(id, (object, TimeRecord) -> TimeRecord = currentTime);
     }
 
     /**
@@ -155,8 +149,27 @@ public class FSFTBuffer<T extends Bufferable> {
             return false;
         }
         buffer.replace(t.id(), buffer.get(t.id()), t);
-        updateObjectTime(t.id());
+        updateTimeout(t.id());
         return true;
+    }
+
+    /**
+     * When the object in the buffer is used, update the last used time to current time.
+     *
+     * @param id is the ID of the object we want to update the time
+     */
+    private synchronized void updateLastUsedTime(String id) {
+        lastUsedTimeRecord.computeIfPresent(id, (object, time) -> time = currentTime);
+    }
+
+    /**
+     * When the object in the buffer is touched, or updated,
+     * update time to be terminated from the buffer to currentTime + timeout.
+     *
+     * @param id is the ID of the object we want to extend the life to live in the buffer.
+     */
+    private synchronized void updateTimeout(String id) {
+        timeoutRecord.computeIfPresent(id, (object, time) -> time = currentTime);
     }
 
     class TimeHelper extends TimerTask {
@@ -166,13 +179,14 @@ public class FSFTBuffer<T extends Bufferable> {
             currentTime++;
 
             // remove out-dated objects in every second
-            for (String id : objectTimeRecord.keySet()) {
+            for (String id : timeoutRecord.keySet()) {
 
                 // remove
-                int time_debugging = objectTimeRecord.get(id) + timeout;
+                int time_debugging = timeoutRecord.get(id) + timeout;
 
-                if (objectTimeRecord.get(id) + timeout < currentTime) {
-                    objectTimeRecord.remove(id);
+                if (timeoutRecord.get(id) + timeout < currentTime) {
+                    timeoutRecord.remove(id);
+                    lastUsedTimeRecord.remove(id);
                     buffer.remove(id);
                 }
             }
