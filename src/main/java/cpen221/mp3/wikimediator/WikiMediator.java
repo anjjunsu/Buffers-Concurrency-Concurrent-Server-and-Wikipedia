@@ -7,6 +7,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class WikiMediator {
+
+    /* Representation Invariants */
+    // fill this out
+
+    /* Abstract Function */
+    // fill this out
+
+    /* Thread Safety */
+    // fill this out
+
+
     private FSFTBuffer cache;
     private Wiki wiki;
 
@@ -18,18 +29,26 @@ public class WikiMediator {
      *                           will become stale
      */
     public WikiMediator(int capacity, int stalenessInterval) {
-        cache = new FSFTBuffer<>(capacity, stalenessInterval);
+        cache = new FSFTBuffer<Page>(capacity, stalenessInterval);
         wiki = new Wiki.Builder().withDomain("en.wikipedia.org").build();
+    }
+
+    /**
+     * Given a query, return up to limit page titles that match the query string (per Wikipedia's
+     * search service).
+     *
+     * @param query     page title requested
+     * @param limit     number of page titles to be returned
+     * @return          list of page titles from query up to limit page titles.
+     */
+
+    public List<String> search(String query, int limit) {
+        return new ArrayList<>(wiki.search(query, limit));
     }
 
     public String getPage(String pageTitle) {
         return wiki.getPageText(pageTitle);
     }
-
-    public List<String> search(String query, int limit) {
-        return new ArrayList<>();
-    }
-
 
     public List<String> zeitgeist(int limit) {
         return new ArrayList<>();
