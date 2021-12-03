@@ -31,7 +31,6 @@ public class WikiMediator {
     public WikiMediator(int capacity, int stalenessInterval) {
         cache = new FSFTBuffer<>(capacity, stalenessInterval);
         wiki = new Wiki.Builder().withDomain("en.wikipedia.org").build();
-
     }
 
     public List<String> search(String query, int limit) {
