@@ -33,7 +33,7 @@ public class Task1_Test {
         }
     }
 
-    // Test get method updates the time
+    // Test get method updates the last used time
     @Test
     public void testGetUpdatesTime() {
         FSFTBuffer<Bufferable_text_testing> getUpdatesBuffer =
@@ -73,29 +73,11 @@ public class Task1_Test {
     }
 
 
-    // Test whether buffer remove element when time-out
-    @Test
-    public void testTimeOut() {
-        FSFTBuffer<Bufferable_int_Testing> timeOutBuffer =
-            new FSFTBuffer<>(FIVE_CAPACITY, FIVE_SEC_TIME_TO_LIVE);
-        Bufferable_int_Testing ten = new Bufferable_int_Testing(10);
-
-        timeOutBuffer.put(ten);
-
-        try {
-            // Sleep two times of timeout seconds
-            Thread.sleep(ONE_SEC * (2 * FIVE_SEC_TIME_TO_LIVE));
-        } catch (InterruptedException e) {
-            fail("[FSFT testTimeOut] : should not have Interrupted Exception");
-        }
-
-        try {
-            timeOutBuffer.get(ten.id());
-            fail("[FSFT testTImeOut : staled object did not removed in the buffer");
-        } catch (Exception e) {
-            // TEST PASSED
-        }
-    }
+//    // Test whether buffer remove element when time-out
+//    @Test
+//    public void testTimeOut() {
+//
+//    }
 
     // Test the whether the buffer preserve the object in timeout
     @Test

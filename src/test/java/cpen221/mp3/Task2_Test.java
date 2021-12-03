@@ -142,7 +142,8 @@ public class Task2_Test {
             new FSFTBuffer<>(THREE_CAPACITY, FIVE_SEC_TIME_TO_LIVE);
         Bufferable_text_testing JunsuAn =
             new Bufferable_text_testing("Junsu An", "I love(...)", 25);
-        Bufferable_text_testing updatedJunsu = new Bufferable_text_testing("Junsu An", "I win at last", 25);
+        Bufferable_text_testing updatedJunsu =
+            new Bufferable_text_testing("Junsu An", "I win at last", 25);
         Bufferable_text_testing TaeyangBaek =
             new Bufferable_text_testing("John Baek", "I am superman", 22);
         Bufferable_text_testing updatedTaeyang =
@@ -151,7 +152,6 @@ public class Task2_Test {
             new Bufferable_text_testing("Jake Lee", "I am smart", 20);
         Bufferable_text_testing coffee =
             new Bufferable_text_testing("Coffee", "Best coffee is Iced-Americano", 11);
-        Bufferable_text_testing soju = new Bufferable_text_testing("Soju", "Jinro is best", 17);
 
         // First, put maximum capacity of object to the buffer
         Thread t1 = new Thread(new Put_Thread(sharedBuffer, JunsuAn));
