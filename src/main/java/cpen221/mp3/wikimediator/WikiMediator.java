@@ -22,6 +22,7 @@ public class WikiMediator {
     private FSFTBuffer<Page> cache;
     private Wiki wiki;
     private Page pageObject;
+    private int ID; // ID will be deleted later.
 
     /**
      * Create a WikiMediator cache with capacity and stalenessInterval
@@ -31,6 +32,7 @@ public class WikiMediator {
      *                          will become stale
      */
     public WikiMediator(int capacity, int stalenessInterval) {
+        ID = 0;
         cache = new FSFTBuffer<>(capacity, stalenessInterval);
         wiki = new Wiki.Builder().withDomain("en.wikipedia.org").build();
     }
@@ -41,17 +43,19 @@ public class WikiMediator {
      *
      * @param query page title requested
      * @param limit number of page titles to be returned
-     * @return      list of page titles from query up to limit page titles.
+     * @return list of page titles from query up to limit page titles.
      */
 
     public List<String> search(String query, int limit) {
         try {
-            pageObject = cache.get(query); //qeury needs to be changed to id
+            pageObject = cache.get(String.valueOf(ID));
         } catch (ObjectDoesNotExistException e) {
-            pageObject = new Page(query, getPage(query), 1); //id will be changed later
-            boolean cachePut = cache.put(pageObject);
+            pageObject = new Page(query, getPage(query), ID);
+            cache.put(pageObject);
+            return new ArrayList<>(wiki.search(query,limit));
         }
-
+        // if the pageObject was already existing, touch it to renew it.
+        cache.touch(pageObject.id());
         return new ArrayList<>(wiki.search(query, limit));
     }
 
@@ -64,11 +68,15 @@ public class WikiMediator {
 
     public String getPage(String pageTitle) {
         try {
-            pageObject = cache.get(pageTitle); // pageTitle needs to be changed to id
-        } catch(ObjectDoesNotExistException e) {
-            pageObject = new Page(pageTitle, getPage(pageTitle), 1); //id will be changed later
-            boolean cachePut = cache.put(pageObject);
+            pageObject = cache.get(String.valueOf(ID));
+        } catch (ObjectDoesNotExistException e) {
+            pageObject = new Page(pageTitle, getPage(pageTitle), ID);
+            cache.put(pageObject);
+            return pageObject.content();
         }
+
+        // if the pageObject was already existing, touch it to renew it.
+        cache.touch(pageObject.id());
         return pageObject.content();
     }
 
