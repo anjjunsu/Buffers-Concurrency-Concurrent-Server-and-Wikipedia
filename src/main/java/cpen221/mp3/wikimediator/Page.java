@@ -16,6 +16,14 @@ public class Page implements Bufferable {
         this.id = id;
     }
 
+    public String title() {
+        return title;
+    }
+
+    public String content() {
+        return content;
+    }
+
     @Override
     public String id() {
         return String.valueOf(id);
