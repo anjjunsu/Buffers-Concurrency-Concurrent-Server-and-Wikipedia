@@ -5,6 +5,8 @@ import cpen221.mp3.fsftbuffer.ObjectDoesNotExistException;
 import org.fastily.jwiki.core.Wiki;
 
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -23,8 +25,8 @@ public class WikiMediator {
     private FSFTBuffer<Page> cache;
     private Wiki wiki;
     private Page pageObject;
-    private int ID; // ID will be deleted later.
-    private Map<Integer, Integer> zeitgeistMap;
+    // key: ID, value: number of times the object has been used by search or getPage
+    private Map<String, Integer> zeitgeistMap;
 
     /**
      * Create a WikiMediator cache with capacity and stalenessInterval
@@ -34,9 +36,9 @@ public class WikiMediator {
      *                          will become stale
      */
     public WikiMediator(int capacity, int stalenessInterval) {
-        ID = 0;
         cache = new FSFTBuffer<>(capacity, stalenessInterval);
         wiki = new Wiki.Builder().withDomain("en.wikipedia.org").build();
+        zeitgeistMap = new LinkedHashMap<>();
     }
 
     /**
@@ -49,10 +51,10 @@ public class WikiMediator {
      */
 
     public List<String> search(String query, int limit) {
-        if (zeitgeistMap.containsKey(ID)) {
-            zeitgeistMap.put(ID, zeitgeistMap.get(query) + 1);
+        if (zeitgeistMap.containsKey(query)) {
+            zeitgeistMap.put(query, zeitgeistMap.get(query) + 1);
         } else {
-            zeitgeistMap.put(ID, 1);
+            zeitgeistMap.put(query, 1);
         }
         return new ArrayList<>(wiki.search(query, limit));
     }
@@ -66,16 +68,16 @@ public class WikiMediator {
 
     public String getPage(String pageTitle) {
         try {
-            pageObject = cache.get(String.valueOf(ID));
+            pageObject = cache.get(pageTitle);
         } catch (ObjectDoesNotExistException e) {
-            pageObject = new Page(pageTitle, getPage(pageTitle), ID);
+            pageObject = new Page(pageTitle, getPage(pageTitle));
             cache.put(pageObject);
-            zeitgeistMap.put(ID, 1);
+            zeitgeistMap.put(pageTitle, 1);
             return pageObject.content();
         }
 
         // count up the number in zeigeistMap
-        zeitgeistMap.put(ID, zeitgeistMap.get(ID) + 1);
+        zeitgeistMap.put(pageTitle, zeitgeistMap.get(pageTitle) + 1);
         return pageObject.content();
     }
 
@@ -88,8 +90,20 @@ public class WikiMediator {
      */
 
     public List<String> zeitgeist(int limit) {
+        List<String> mostCommonStringsUsed = new ArrayList<>();
 
-        return new ArrayList<>();
+        // sort the map in non-increasing order
+        zeitgeistMap.entrySet().stream()
+            .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
+            .forEachOrdered(x -> zeitgeistMap.put(x.getKey(), x.getValue()));
+
+        zeitgeistMap.keySet().forEach(x -> {
+            if (mostCommonStringsUsed.size() < limit) {
+                mostCommonStringsUsed.add(x);
+            }
+        });
+
+        return mostCommonStringsUsed;
     }
 
     public List<String> trending(int timeLimitInSeconds, int maxItems) {
