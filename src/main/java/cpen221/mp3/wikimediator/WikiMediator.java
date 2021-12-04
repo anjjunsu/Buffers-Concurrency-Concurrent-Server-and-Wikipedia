@@ -83,7 +83,7 @@ public class WikiMediator {
 
     /**
      * Return the most common strings used in search and getPage requests, with items being sorted
-     * in non-increasing count order up to limit number of items.
+     * in non-increasing count order up to the number specified.
      *
      * @param limit maximum number of items to be returned
      * @return list of strings that are used in search and getPage requests the most.
@@ -106,7 +106,19 @@ public class WikiMediator {
         return mostCommonStringsUsed;
     }
 
+    /**
+     * Return the most common strings used in search and getPage requests, within the time limit.
+     * The items are sorted in non-increasing count order up to the number specified.
+     *
+     * @param timeLimitInSeconds time in which the requests are valid for this method
+     * @param maxItems           max number of items to be returned
+     * @return                  list of strings that are used in search and getPage requests
+     *                          the most within the timeLimitInSeconds.
+     */
     public List<String> trending(int timeLimitInSeconds, int maxItems) {
+        List<String> mostUsedStringsWithinTime = new ArrayList<>();
+
+
         return new ArrayList<>();
     }
 
