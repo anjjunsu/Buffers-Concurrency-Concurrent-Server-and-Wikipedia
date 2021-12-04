@@ -6,6 +6,7 @@ import org.fastily.jwiki.core.Wiki;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class WikiMediator {
 
@@ -23,6 +24,7 @@ public class WikiMediator {
     private Wiki wiki;
     private Page pageObject;
     private int ID; // ID will be deleted later.
+    private Map<Integer, Integer> zeitgeistMap;
 
     /**
      * Create a WikiMediator cache with capacity and stalenessInterval
@@ -47,15 +49,11 @@ public class WikiMediator {
      */
 
     public List<String> search(String query, int limit) {
-        try {
-            pageObject = cache.get(String.valueOf(ID));
-        } catch (ObjectDoesNotExistException e) {
-            pageObject = new Page(query, getPage(query), ID);
-            cache.put(pageObject);
-            return new ArrayList<>(wiki.search(query,limit));
+        if (zeitgeistMap.containsKey(ID)) {
+            zeitgeistMap.put(ID, zeitgeistMap.get(query) + 1);
+        } else {
+            zeitgeistMap.put(ID, 1);
         }
-        // if the pageObject was already existing, touch it to renew it.
-        cache.touch(pageObject.id());
         return new ArrayList<>(wiki.search(query, limit));
     }
 
@@ -72,11 +70,12 @@ public class WikiMediator {
         } catch (ObjectDoesNotExistException e) {
             pageObject = new Page(pageTitle, getPage(pageTitle), ID);
             cache.put(pageObject);
+            zeitgeistMap.put(ID, 1);
             return pageObject.content();
         }
 
-        // if the pageObject was already existing, touch it to renew it.
-        cache.touch(pageObject.id());
+        // count up the number in zeigeistMap
+        zeitgeistMap.put(ID, zeitgeistMap.get(ID) + 1);
         return pageObject.content();
     }
 
@@ -89,6 +88,7 @@ public class WikiMediator {
      */
 
     public List<String> zeitgeist(int limit) {
+
         return new ArrayList<>();
     }
 
