@@ -9,6 +9,8 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class WikiMediator {
 
@@ -21,12 +23,17 @@ public class WikiMediator {
     /* Thread Safety */
     // fill this out
 
+    public static final int ONE_SEC = 1000; // for timer
 
     private FSFTBuffer<Page> cache;
     private Wiki wiki;
     private Page pageObject;
     // key: ID, value: number of times the object has been used by search or getPage
     private Map<String, Integer> zeitgeistMap;
+    private Map<String, Integer> timerMap;
+    //timer for trending and windowedPeakLoad
+    private Timer cacheTimer;
+    private int currentTime;
 
     /**
      * Create a WikiMediator cache with capacity and stalenessInterval
@@ -39,6 +46,11 @@ public class WikiMediator {
         cache = new FSFTBuffer<>(capacity, stalenessInterval);
         wiki = new Wiki.Builder().withDomain("en.wikipedia.org").build();
         zeitgeistMap = new LinkedHashMap<>();
+        timerMap = new LinkedHashMap<>();
+        currentTime = 0;
+        cacheTimer = new Timer();
+        // Start at time = 0, unit of time flow = 1 second
+        cacheTimer.schedule(new TimeHelper(), 0, ONE_SEC);
     }
 
     /**
@@ -73,11 +85,13 @@ public class WikiMediator {
             pageObject = new Page(pageTitle, getPage(pageTitle));
             cache.put(pageObject);
             zeitgeistMap.put(pageTitle, 1);
+            timerMap.put(pageTitle, currentTime);
             return pageObject.content();
         }
 
         // count up the number in zeigeistMap
         zeitgeistMap.put(pageTitle, zeitgeistMap.get(pageTitle) + 1);
+        timerMap.put(pageTitle, currentTime);
         return pageObject.content();
     }
 
@@ -90,20 +104,8 @@ public class WikiMediator {
      */
 
     public List<String> zeitgeist(int limit) {
-        List<String> mostCommonStringsUsed = new ArrayList<>();
-
         // sort the map in non-increasing order
-        zeitgeistMap.entrySet().stream()
-            .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
-            .forEachOrdered(x -> zeitgeistMap.put(x.getKey(), x.getValue()));
-
-        zeitgeistMap.keySet().forEach(x -> {
-            if (mostCommonStringsUsed.size() < limit) {
-                mostCommonStringsUsed.add(x);
-            }
-        });
-
-        return mostCommonStringsUsed;
+        return getOrderedList(zeitgeistMap, limit);
     }
 
     /**
@@ -112,15 +114,46 @@ public class WikiMediator {
      *
      * @param timeLimitInSeconds time in which the requests are valid for this method
      * @param maxItems           max number of items to be returned
-     * @return                  list of strings that are used in search and getPage requests
-     *                          the most within the timeLimitInSeconds.
+     * @return list of strings that are used in search and getPage requests
+     * the most within the timeLimitInSeconds.
      */
+
     public List<String> trending(int timeLimitInSeconds, int maxItems) {
-        List<String> mostUsedStringsWithinTime = new ArrayList<>();
+        Map<String, Integer> timeFilteredMap = new LinkedHashMap<>();
 
+        timerMap.forEach((x, y) -> {
+            if (y <= timeLimitInSeconds) {
+                timeFilteredMap.put(x, zeitgeistMap.get(x));
+            }
+        });
 
-        return new ArrayList<>();
+        return getOrderedList(timeFilteredMap, maxItems);
     }
+
+    /**
+     * return list of strings that have been used the most in non-increasing order.
+     *
+     * @param mapToSort map to sort in non-increasing order regarding
+     *                  the number of times the element is used
+     * @param max       maximum number of items to be returned
+     * @return list of strings that have been used the most, in non-increasing order.
+     */
+
+    private List<String> getOrderedList(Map<String, Integer> mapToSort, int max) {
+        List<String> resultList = new ArrayList<>();
+        mapToSort.entrySet().stream()
+            .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
+            .forEachOrdered(x -> mapToSort.put(x.getKey(), x.getValue()));
+
+        mapToSort.keySet().forEach(x -> {
+            if (resultList.size() < max) {
+                resultList.add(x);
+            }
+        });
+
+        return resultList;
+    }
+
 
     public int windowedPeakLoad(int timeWindowInSeconds) {
         return 0;
@@ -128,6 +161,14 @@ public class WikiMediator {
 
     public int windowedPeakLoad() {
         return 0;
+    }
+
+    class TimeHelper extends TimerTask {
+
+        @Override
+        public synchronized void run() {
+            currentTime++;
+        }
     }
 
 }
