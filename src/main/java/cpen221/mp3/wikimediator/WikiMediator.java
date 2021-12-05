@@ -154,8 +154,14 @@ public class WikiMediator {
         return resultList;
     }
 
+    /**
+     *
+     * @param timeWindowInSeconds
+     * @return
+     */
 
     public int windowedPeakLoad(int timeWindowInSeconds) {
+
         return 0;
     }
 
