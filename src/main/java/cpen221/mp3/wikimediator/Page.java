@@ -8,16 +8,24 @@ import cpen221.mp3.fsftbuffer.Bufferable;
 public class Page implements Bufferable {
     private  String title;
     private  String content;
-    private final int id;
+    private  String  id;
 
-    public Page(String title, String content, int id) {
+    public Page(String title, String content) {
         this.title = title;
         this.content = content;
-        this.id = id;
+        this.id = title;
+    }
+
+    public String title() {
+        return title;
+    }
+
+    public String content() {
+        return content;
     }
 
     @Override
     public String id() {
-        return String.valueOf(id);
+        return id;
     }
 }
