@@ -154,7 +154,6 @@ public class WikiMediator {
                 resultList.add(x);
             }
         });
-        System.out.println(mapSorted);
 
         return resultList;
     }
