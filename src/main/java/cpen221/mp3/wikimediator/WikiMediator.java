@@ -82,7 +82,7 @@ public class WikiMediator {
         try {
             pageObject = cache.get(pageTitle);
         } catch (ObjectDoesNotExistException e) {
-            pageObject = new Page(pageTitle, getPage(pageTitle));
+            pageObject = new Page(pageTitle, wiki.getPageText(pageTitle));
             cache.put(pageObject);
             zeitgeistMap.put(pageTitle, 1);
             timerMap.put(pageTitle, currentTime);
