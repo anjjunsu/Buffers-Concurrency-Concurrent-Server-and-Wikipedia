@@ -1,5 +1,6 @@
 package cpen221.mp3.server;
 
+import com.google.gson.Gson;
 import cpen221.mp3.wikimediator.WikiMediator;
 
 import java.io.BufferedReader;
@@ -9,6 +10,8 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class WikiMediatorServer {
 
@@ -22,6 +25,7 @@ public class WikiMediatorServer {
     //
 
     private ServerSocket serverSocket;
+    private ExecutorService executorService;
 
     /**
      * Start a server at a given port number, with the ability to process
@@ -34,6 +38,7 @@ public class WikiMediatorServer {
      */
     public WikiMediatorServer(int port, int n, WikiMediator wikiMediator) throws IOException {
         serverSocket = new ServerSocket(port);
+        executorService = Executors.newFixedThreadPool(n);
     }
 
     /**

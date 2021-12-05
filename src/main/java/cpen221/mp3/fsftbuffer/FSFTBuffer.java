@@ -12,22 +12,26 @@ public class FSFTBuffer<T extends Bufferable> {
     /* Representation Invariant */
     // capacity > 0
     // timeout > 0 (Unit : seconds)
-    // Buffer and objectTimeRecord does not contain null
+    // Buffer, timeoutRecord, and lastUsedTimeRecord does not contain null
     // No duplicates in the buffer
-    // No duplicates in the objectTimeRecord
-    // Size of the buffer and objectTimeRecord do not exceed the capacity
+    // No duplicates in the timeoutRecord
+    // No duplicates in the lastUsedTimeRecord
+    // Size of the buffer, timeoutRecord, and lastUsedTimeRecord do not exceed the capacity
     // If object is inserted in buffer,
-    //      objectTimeRecord must also contains that object's information and vice versa
+    //      timeoutRecord and lastUsedTimeRecord must also contain
+    //      that object's information and vice versa.
 
     /* Abstract Function */
     // FSFT buffer holds limited number of inserted object for a limited time
     // Buffer is the map that the key is the ID of bufferable object
     //      and the value is bufferable object
-    // ObjectTimeRecord is the map that the key is the ID of bufferable object in buffer
-    //      and the values represents the inserted time
+    // timeoutRecord is the map that the key is the ID of bufferable object in buffer
+    //      and the values represents the putted, touched, or updated time.
+    // lastUsedTimeRecord is the map that key is the ID of bufferable object in buffer
+    //      and the values represent the most recent used time.
 
     /* Thread Safety */
-    //
+    // TODO
 
     public static final int ONE_SEC = 1000;
     /* the default buffer size is 32 objects */
@@ -77,22 +81,30 @@ public class FSFTBuffer<T extends Bufferable> {
     }
 
     /**
-     * Add a value to the buffer.
+     * Add a value to the buffer and that object is considered as 'used'.
+     * If same object id is already exists in the buffer, it uses update method.
+     *      it considered as 'used' and its timeout delays.
      * If the buffer is full then remove the least recently accessed
-     * object to make room for the new object.
+     *      object to make room for the new object.
      */
     public synchronized boolean put(T t) {
+        if (buffer.containsKey(t.id())) {
+            update(t);
+            updateLastUsedTime(t.id());
+        }
+
         if (buffer.size() >= capacity) {
             removeLeastUsed();
         }
         buffer.put(t.id(), t);
         timeoutRecord.put(t.id(), currentTime);
         lastUsedTimeRecord.put(t.id(), currentTime);
+
         return true;
     }
 
     /**
-     *
+     * It removes one object in the buffer which is not most recently used.
      */
     private synchronized void removeLeastUsed() {
         String leastUsedID = Collections.min(lastUsedTimeRecord.entrySet(),
@@ -104,9 +116,9 @@ public class FSFTBuffer<T extends Bufferable> {
     }
 
     /**
+     * Retrieves the object in the buffer and that object is considered as 'used'.
      * @param id the identifier of the object to be retrieved
-     * @return the object that matches the identifier from the
-     * buffer
+     * @return the object that matches the identifier from the buffer
      */
     public synchronized T get(String id) throws ObjectDoesNotExistException {
         if (!buffer.containsKey(id)) {
@@ -164,7 +176,7 @@ public class FSFTBuffer<T extends Bufferable> {
 
     /**
      * When the object in the buffer is touched, or updated,
-     * update time to be terminated from the buffer to currentTime + timeout.
+     *      update time to be terminated from the buffer to currentTime + timeout.
      *
      * @param id is the ID of the object we want to extend the life to live in the buffer.
      */
@@ -172,6 +184,10 @@ public class FSFTBuffer<T extends Bufferable> {
         timeoutRecord.computeIfPresent(id, (object, time) -> time = currentTime);
     }
 
+    /**
+     * TimerTask that increment currentTime by one for every second.
+     * Check staled objects in the buffer and removes from the buffer if that is staled.
+     */
     class TimeHelper extends TimerTask {
 
         @Override
@@ -180,9 +196,6 @@ public class FSFTBuffer<T extends Bufferable> {
 
             // remove out-dated objects in every second
             for (String id : timeoutRecord.keySet()) {
-
-                // remove
-                int time_debugging = timeoutRecord.get(id) + timeout;
 
                 if (timeoutRecord.get(id) + timeout < currentTime) {
                     timeoutRecord.remove(id);
