@@ -29,8 +29,8 @@ public class WikiMediator {
     private Wiki wiki;
     private Page pageObject;
     // key: ID, value: number of times the object has been used by search or getPage
-    private Map<String, Integer> zeitgeistMap;
-    private Map<String, Integer> timerMap;
+    private LinkedHashMap<String, Integer> zeitgeistMap;
+    private LinkedHashMap<String, Integer> timerMap;
     //timer for trending and windowedPeakLoad
     private Timer cacheTimer;
     private int currentTime;
@@ -119,7 +119,7 @@ public class WikiMediator {
      */
 
     public List<String> trending(int timeLimitInSeconds, int maxItems) {
-        Map<String, Integer> timeFilteredMap = new LinkedHashMap<>();
+        LinkedHashMap<String, Integer> timeFilteredMap = new LinkedHashMap<>();
 
         timerMap.forEach((x, y) -> {
             if (y <= timeLimitInSeconds) {
@@ -139,13 +139,15 @@ public class WikiMediator {
      * @return list of strings that have been used the most, in non-increasing order.
      */
 
-    private List<String> getOrderedList(Map<String, Integer> mapToSort, int max) {
+    private List<String> getOrderedList(LinkedHashMap<String, Integer> mapToSort, int max) {
         List<String> resultList = new ArrayList<>();
+        LinkedHashMap<String, Integer> mapSorted = new LinkedHashMap<>();
+
         mapToSort.entrySet().stream()
             .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
-            .forEachOrdered(x -> mapToSort.put(x.getKey(), x.getValue()));
+            .forEach(x -> mapSorted.put(x.getKey(), x.getValue()));
 
-        mapToSort.keySet().forEach(x -> {
+        mapSorted.keySet().forEach(x -> {
             if (resultList.size() < max) {
                 resultList.add(x);
             }
