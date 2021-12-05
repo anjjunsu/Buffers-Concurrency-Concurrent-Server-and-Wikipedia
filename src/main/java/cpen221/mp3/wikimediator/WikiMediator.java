@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class WikiMediator {
 
@@ -29,8 +30,8 @@ public class WikiMediator {
     private Wiki wiki;
     private Page pageObject;
     // key: ID, value: number of times the object has been used by search or getPage
-    private LinkedHashMap<String, Integer> zeitgeistMap;
-    private LinkedHashMap<String, Integer> timerMap;
+    private ConcurrentHashMap<String, Integer> zeitgeistMap;
+    private ConcurrentHashMap<String, Integer> timerMap;
     //timer for trending and windowedPeakLoad
     private Timer cacheTimer;
     private int currentTime;
@@ -45,8 +46,8 @@ public class WikiMediator {
     public WikiMediator(int capacity, int stalenessInterval) {
         cache = new FSFTBuffer<>(capacity, stalenessInterval);
         wiki = new Wiki.Builder().withDomain("en.wikipedia.org").build();
-        zeitgeistMap = new LinkedHashMap<>();
-        timerMap = new LinkedHashMap<>();
+        zeitgeistMap = new ConcurrentHashMap<>();
+        timerMap = new ConcurrentHashMap<>();
         currentTime = 0;
         cacheTimer = new Timer();
         // Start at time = 0, unit of time flow = 1 second
@@ -62,7 +63,7 @@ public class WikiMediator {
      * @return list of page titles from query up to limit page titles.
      */
 
-    public List<String> search(String query, int limit) {
+    public  List<String> search(String query, int limit) {
         if (zeitgeistMap.containsKey(query)) {
             zeitgeistMap.put(query, zeitgeistMap.get(query) + 1);
         } else {
@@ -139,11 +140,12 @@ public class WikiMediator {
      * @return list of strings that have been used the most, in non-increasing order.
      */
 
-    private List<String> getOrderedList(LinkedHashMap<String, Integer> mapToSort, int max) {
+    private List<String> getOrderedList(Map<String, Integer> mapToSort, int max) {
         List<String> resultList = new ArrayList<>();
+        LinkedHashMap<String, Integer> LmapToSort = new LinkedHashMap<>(mapToSort);
         LinkedHashMap<String, Integer> mapSorted = new LinkedHashMap<>();
 
-        mapToSort.entrySet().stream()
+        LmapToSort.entrySet().stream()
             .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
             .forEach(x -> mapSorted.put(x.getKey(), x.getValue()));
 
@@ -152,6 +154,7 @@ public class WikiMediator {
                 resultList.add(x);
             }
         });
+        System.out.println(mapSorted);
 
         return resultList;
     }

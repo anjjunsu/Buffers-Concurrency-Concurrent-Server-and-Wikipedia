@@ -22,8 +22,31 @@ public class Task3_Test {
     }
 
     @Test
+    public void testSearchAndZeitgeist() {
+        WikiMediator wikime = new WikiMediator(FIVE_CAPACITY, TEN_SEC_TO_LIVE);
+
+        wikime.search("Computer Engineering", 2);
+        wikime.search("Computer Engineering",3);
+        System.out.println(wikime.search("Computer Engineering", 4));
+
+        wikime.search("Verilog", 1);
+        wikime.search("Verilog", 2);
+        System.out.println(wikime.search("Verilog", 3));
+        wikime.search("Verilog", 5);
+
+        List<String> zeitgeistList = new ArrayList<>();
+        zeitgeistList.add("Verilog");
+        zeitgeistList.add("Computer Engineering");
+
+        Assert.assertEquals(zeitgeistList, wikime.zeitgeist(5));
+
+
+    }
+
+    @Test
     public void testGetPageAndZeitgeist() {
         WikiMediator wikime = new WikiMediator(FIVE_CAPACITY, FIVE_SEC_TO_LIVE);
+
         System.out.println(wikime.getPage("Hello"));
         wikime.getPage("Barack Obama");
         System.out.println(wikime.getPage("Barack Obama"));
@@ -43,5 +66,14 @@ public class Task3_Test {
         Assert.assertEquals(zeitgeistList, wikime.zeitgeist(3));
 
     }
+
+//    @Test
+//    public void testZeitgeistWithStaledPages() {
+//        WikiMediator wikime = new WikiMediator(FIVE_CAPACITY, FIVE_SEC_TO_LIVE);
+//
+//        wikime.getPage()
+//
+//    }
+
 
 }
