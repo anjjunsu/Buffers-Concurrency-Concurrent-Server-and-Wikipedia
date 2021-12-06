@@ -71,6 +71,15 @@ public class WikiMediator {
         } else {
             zeitgeistMap.put(query, 1);
         }
+
+        if (timerMap.containsKey(query)) {
+            timerMap.get(query).add(currentTime);
+        } else {
+            ArrayList<Double> timeList = new ArrayList<>();
+            timeList.add(currentTime);
+            timerMap.put(query, timeList);
+        }
+
         return new ArrayList<>(wiki.search(query, limit));
     }
 
