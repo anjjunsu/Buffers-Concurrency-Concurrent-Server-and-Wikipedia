@@ -66,19 +66,8 @@ public class WikiMediator {
      */
 
     public List<String> search(String query, int limit) {
-        if (zeitgeistMap.containsKey(query)) {
-            zeitgeistMap.put(query, zeitgeistMap.get(query) + 1);
-        } else {
-            zeitgeistMap.put(query, 1);
-        }
-
-        if (timerMap.containsKey(query)) {
-            timerMap.get(query).add(currentTime);
-        } else {
-            ArrayList<Double> timeList = new ArrayList<>();
-            timeList.add(currentTime);
-            timerMap.put(query, timeList);
-        }
+        addElementOnZeitgeistMap(zeitgeistMap, query);
+        addElementOnTimerMap(timerMap, query);
 
         return new ArrayList<>(wiki.search(query, limit));
     }
@@ -94,30 +83,35 @@ public class WikiMediator {
         try {
             pageObject = cache.get(pageTitle);
         } catch (ObjectDoesNotExistException e) {
-            if (zeitgeistMap.containsKey(pageTitle)) {
-                zeitgeistMap.put(pageTitle, zeitgeistMap.get(pageTitle) + 1);
-            } else {
-                zeitgeistMap.put(pageTitle, 1);
-            }
-
-            if (timerMap.containsKey(pageTitle)) {
-                timerMap.get(pageTitle).add(currentTime);
-            } else {
-                ArrayList<Double> timeList = new ArrayList<>();
-                timeList.add(currentTime);
-                timerMap.put(pageTitle, timeList);
-
-            }
+            addElementOnZeitgeistMap(zeitgeistMap, pageTitle);
+            addElementOnTimerMap(timerMap, pageTitle);
 
             pageObject = new Page(pageTitle, wiki.getPageText(pageTitle));
             cache.put(pageObject);
             return pageObject.content();
         }
 
-        // count up the number in zeigeistMap
-        zeitgeistMap.put(pageTitle, zeitgeistMap.get(pageTitle) + 1);
-        timerMap.get(pageTitle).add(currentTime);
+        addElementOnZeitgeistMap(zeitgeistMap, pageTitle);
+        addElementOnTimerMap(timerMap, pageTitle);
         return pageObject.content();
+    }
+
+    private void addElementOnZeitgeistMap(Map<String, Integer> zeitgeistMap, String element) {
+        if (zeitgeistMap.containsKey(element)) {
+            zeitgeistMap.put(element, zeitgeistMap.get(element) + 1);
+        } else {
+            zeitgeistMap.put(element, 1);
+        }
+    }
+
+    private void addElementOnTimerMap(Map<String, ArrayList<Double>> timerMap, String element) {
+        if (timerMap.containsKey(element)) {
+            timerMap.get(element).add(currentTime);
+        } else {
+            ArrayList<Double> timeList = new ArrayList<>();
+            timeList.add(currentTime);
+            timerMap.put(element, timeList);
+        }
     }
 
     /**
