@@ -1,5 +1,6 @@
 package cpen221.mp3.server;
 
+import com.google.gson.Gson;
 import cpen221.mp3.wikimediator.WikiMediator;
 
 import java.io.IOException;
@@ -38,6 +39,7 @@ public class WikiMediatorServer {
         } catch (IOException e) {
             throw new RuntimeException("[IOException] was thrown while constructing the server.");
         }
+
     }
 
     /**
@@ -52,8 +54,6 @@ public class WikiMediatorServer {
                 throw new RuntimeException(
                     "[IOExeption] was thrown while accepting client request.");
             }
-
-
         }
     }
 }
