@@ -7,6 +7,8 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.junit.Assert.*;
+
 public class Task3_Test {
     public static final int FIVE_CAPACITY = 5;
     public static final int TEN_CAPACITY = 10;
@@ -84,6 +86,41 @@ public class Task3_Test {
         zeitgeistList.add("UBC");
 
         Assert.assertEquals(zeitgeistList, wikime.zeitgeist(5));
+
+    }
+
+    @Test
+    public void testTrending1() {
+        WikiMediator wikime = new WikiMediator(FIVE_CAPACITY, TEN_SEC_TO_LIVE);
+
+        System.out.println(wikime.getPage("abc"));
+        wikime.getPage("abc");
+        wikime.getPage("abc");
+        wikime.getPage("abc");
+
+        System.out.println(wikime.getPage("Hello"));
+        wikime.getPage("Barack Obama");
+        System.out.println(wikime.getPage("Barack Obama"));
+
+        // sleep for three seconds
+        try {
+            Thread.sleep(3 * ONE_SEC);
+        } catch (InterruptedException e) {
+            fail("[Task3 TEST FAIL : test GetUpdatesTime] is interrupted while trying to sleep");
+        }
+
+        wikime.getPage("Hello");
+        wikime.getPage("Hello");
+
+        List<String> trendingList = new ArrayList<>();
+        trendingList.add("abc");
+        trendingList.add("Barack Obama");
+
+        Assert.assertEquals(trendingList, wikime.trending(3, 5));
+    }
+
+    @Test
+    public void testTrending2() {
 
     }
 
