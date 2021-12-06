@@ -6,6 +6,7 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.*;
 
@@ -64,7 +65,6 @@ public class Task3_Test {
         zeitgeistList.add("Hello");
         zeitgeistList.add("Barack Obama");
 
-
         Assert.assertEquals(zeitgeistList, wikime.zeitgeist(3));
 
     }
@@ -90,7 +90,35 @@ public class Task3_Test {
     }
 
     @Test
-    public void testTrending1() {
+    public void testTrending1() throws InterruptedException {
+        WikiMediator wikime = new WikiMediator(FIVE_CAPACITY, TEN_SEC_TO_LIVE);
+
+        wikime.getPage("abc");
+        wikime.getPage("abc");
+        wikime.getPage("abc");
+        wikime.getPage("abc");
+
+        wikime.getPage("Hello");
+        wikime.getPage("Barack Obama");
+        wikime.getPage("Barack Obama");
+
+        // sleep for three seconds
+        TimeUnit.SECONDS.sleep(3);
+
+
+        wikime.getPage("Hello");
+        wikime.getPage("Hello");
+
+        List<String> trendingList = new ArrayList<>();
+        trendingList.add("abc");
+        trendingList.add("Barack Obama");
+        trendingList.add("Hello");
+
+        Assert.assertEquals(trendingList, wikime.trending(3, 5));
+    }
+
+    @Test
+    public void testTrending2() {
         WikiMediator wikime = new WikiMediator(FIVE_CAPACITY, TEN_SEC_TO_LIVE);
 
         System.out.println(wikime.getPage("abc"));
@@ -114,14 +142,38 @@ public class Task3_Test {
 
         List<String> trendingList = new ArrayList<>();
         trendingList.add("abc");
+        trendingList.add("Hello");
         trendingList.add("Barack Obama");
 
-        Assert.assertEquals(trendingList, wikime.trending(3, 5));
+        Assert.assertEquals(trendingList, wikime.trending(5, 5));
     }
 
     @Test
-    public void testTrending2() {
+    public void testTrending3() {
+        WikiMediator wikime = new WikiMediator(TEN_CAPACITY, TEN_SEC_TO_LIVE);
 
+        wikime.search("Computer Engineering", 2);
+        wikime.search("Computer Engineering", 3);
+        System.out.println(wikime.search("Computer Engineering", 4));
+
+        wikime.search("Verilog", 1);
+        System.out.println(wikime.search("Verilog", 3));
+
+        try {
+            Thread.sleep(4 * ONE_SEC);
+        } catch (InterruptedException e) {
+            fail("[Task3 TEST FAIL : test GetUpdatesTime] is interrupted while trying to sleep");
+        }
+
+        wikime.search("Verilog", 4);
+        wikime.search("Verilog", 5);
+
+
+        List<String> trendingList = new ArrayList<>();
+        trendingList.add("Verilog");
+        trendingList.add("Computer Engineering");
+
+        Assert.assertEquals(trendingList, wikime.trending(6, 5));
     }
 
 
