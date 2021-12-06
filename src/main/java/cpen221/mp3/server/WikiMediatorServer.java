@@ -114,7 +114,8 @@ public class WikiMediatorServer {
                     case "Search":
                         Future<List<String>> resultSearch = executorService.submit(
                             () -> wikiMediator.search(request.query, request.limit));
-                        response = new Response<>(request.id, resultSearch.get());
+                        //TODO
+//                        response = new Response<>(request.id, resultSearch.get());
                         break;
                     case "getPage":
                         Future<String> resultGetPage =
@@ -130,13 +131,14 @@ public class WikiMediatorServer {
                                 request.maxitems));
                         break;
                     case "windowPeakLoad":
-                        if (request.timeWindowInSeconds != null) {
-                            Future<Integer> resultWindowPeakLoad = executorService.submit(
-                                () -> wikiMediator.windowedPeakLoad(request.timeWindowInSeconds));
-                        } else {
-                            Future<Integer> resultWindowPeakLoad =
-                                executorService.submit(() -> wikiMediator.windowedPeakLoad());
-                        }
+                        // TODO
+//                        if (request.timeWindowInSeconds != null) {
+//                            Future<Integer> resultWindowPeakLoad = executorService.submit(
+//                                () -> wikiMediator.windowedPeakLoad(request.timeWindowInSeconds));
+//                        } else {
+//                            Future<Integer> resultWindowPeakLoad =
+//                                executorService.submit(() -> wikiMediator.windowedPeakLoad());
+//                        }
                         break;
                     case "stop":
                         response = new Response<>(request.id, "bye");
