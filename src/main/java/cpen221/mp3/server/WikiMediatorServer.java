@@ -91,7 +91,7 @@ public class WikiMediatorServer {
     // TODO : Learn how exactly gson thing works
 
     /**
-     *
+     * This request stores the client request information
      */
     private class Request {
         String id;
