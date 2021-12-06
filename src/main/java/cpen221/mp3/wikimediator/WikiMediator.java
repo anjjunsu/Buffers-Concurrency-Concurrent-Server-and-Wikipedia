@@ -26,16 +26,17 @@ public class WikiMediator {
     // fill this out
 
     public static final int ONE_SEC = 1000; // for timer
+    public static final int MILLIE_SEC = 1;
 
     private FSFTBuffer<Page> cache;
     private Wiki wiki;
     private Page pageObject;
     // key: ID, value: number of times the object has been used by search or getPage
     private ConcurrentHashMap<String, Integer> zeitgeistMap;
-    private ConcurrentHashMap<String, ArrayList<Integer>> timerMap;
+    private ConcurrentHashMap<String, ArrayList<Double>> timerMap;
     //timer for trending and windowedPeakLoad
     private Timer cacheTimer;
-    private int currentTime;
+    private double currentTime;
 
     /**
      * Create a WikiMediator cache with capacity and stalenessInterval
@@ -52,7 +53,7 @@ public class WikiMediator {
         currentTime = 0;
         cacheTimer = new Timer();
         // Start at time = 0, unit of time flow = 1 second
-        cacheTimer.schedule(new TimeHelper(), 0, ONE_SEC);
+        cacheTimer.schedule(new TimeHelper(), 0, MILLIE_SEC);
     }
 
     /**
@@ -93,7 +94,7 @@ public class WikiMediator {
             if (timerMap.containsKey(pageTitle)) {
                 timerMap.get(pageTitle).add(currentTime);
             } else {
-                ArrayList<Integer> timeList = new ArrayList<>();
+                ArrayList<Double> timeList = new ArrayList<>();
                 timeList.add(currentTime);
                 timerMap.put(pageTitle, timeList);
 
@@ -198,7 +199,7 @@ public class WikiMediator {
 
         @Override
         public synchronized void run() {
-            currentTime++;
+            currentTime += 0.001;
         }
     }
 
