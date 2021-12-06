@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class WikiMediator {
 
@@ -31,7 +32,7 @@ public class WikiMediator {
     private Page pageObject;
     // key: ID, value: number of times the object has been used by search or getPage
     private ConcurrentHashMap<String, Integer> zeitgeistMap;
-    private ConcurrentHashMap<String, Integer> timerMap;
+    private ConcurrentHashMap<String, ArrayList<Integer>> timerMap;
     //timer for trending and windowedPeakLoad
     private Timer cacheTimer;
     private int currentTime;
@@ -63,7 +64,7 @@ public class WikiMediator {
      * @return list of page titles from query up to limit page titles.
      */
 
-    public  List<String> search(String query, int limit) {
+    public List<String> search(String query, int limit) {
         if (zeitgeistMap.containsKey(query)) {
             zeitgeistMap.put(query, zeitgeistMap.get(query) + 1);
         } else {
@@ -83,16 +84,29 @@ public class WikiMediator {
         try {
             pageObject = cache.get(pageTitle);
         } catch (ObjectDoesNotExistException e) {
+            if (zeitgeistMap.containsKey(pageTitle)) {
+                zeitgeistMap.put(pageTitle, zeitgeistMap.get(pageTitle) + 1);
+            } else {
+                zeitgeistMap.put(pageTitle, 1);
+            }
+
+            if (timerMap.containsKey(pageTitle)) {
+                timerMap.get(pageTitle).add(currentTime);
+            } else {
+                ArrayList<Integer> timeList = new ArrayList<>();
+                timeList.add(currentTime);
+                timerMap.put(pageTitle, timeList);
+
+            }
+
             pageObject = new Page(pageTitle, wiki.getPageText(pageTitle));
             cache.put(pageObject);
-            zeitgeistMap.put(pageTitle, 1);
-            timerMap.put(pageTitle, currentTime);
             return pageObject.content();
         }
 
         // count up the number in zeigeistMap
         zeitgeistMap.put(pageTitle, zeitgeistMap.get(pageTitle) + 1);
-        timerMap.put(pageTitle, currentTime);
+        timerMap.get(pageTitle).add(currentTime);
         return pageObject.content();
     }
 
@@ -121,11 +135,17 @@ public class WikiMediator {
 
     public List<String> trending(int timeLimitInSeconds, int maxItems) {
         LinkedHashMap<String, Integer> timeFilteredMap = new LinkedHashMap<>();
+        System.out.println(timerMap);
 
+        // each index + 1 shows count
         timerMap.forEach((x, y) -> {
-            if (y <= timeLimitInSeconds) {
-                timeFilteredMap.put(x, zeitgeistMap.get(x));
-            }
+            AtomicInteger c = new AtomicInteger();
+            y.forEach(z -> {
+                c.getAndIncrement();
+                if (z <= timeLimitInSeconds) {
+                    timeFilteredMap.put(x, Integer.valueOf(c.toString()));
+                }
+            });
         });
 
         return getOrderedList(timeFilteredMap, maxItems);
@@ -155,11 +175,12 @@ public class WikiMediator {
             }
         });
 
+        System.out.println(mapSorted);
+
         return resultList;
     }
 
     /**
-     *
      * @param timeWindowInSeconds
      * @return
      */
