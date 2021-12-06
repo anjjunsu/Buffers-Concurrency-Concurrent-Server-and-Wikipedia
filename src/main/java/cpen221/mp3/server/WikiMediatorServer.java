@@ -13,6 +13,7 @@ import java.net.Socket;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 
 public class WikiMediatorServer {
@@ -96,32 +97,8 @@ public class WikiMediatorServer {
                 System.err.println("request: " + line);
 
                 Request request = new Gson().fromJson(line, Request.class);
+                Response<?> response = null;
 
-                // Perform operations according to request type
-                switch (request.type) {
-                    case "Search" :
-
-                        break;
-                    case "getPage" :
-
-                        break;
-
-                    case "zeitgeist" :
-
-                        break;
-
-                    case "trending" :
-
-                        break;
-
-                    case "windowPeakLoad" :
-
-                        break;
-
-                    case "stop" :
-                        // TODO shutdown the server
-                        break;
-                }
                 // TODO
                 // if request.type =
                 // Search(String query, int limit) :  return List<String>
@@ -130,20 +107,48 @@ public class WikiMediatorServer {
                 // trend(int timeLimit, int maxitems) : List <String>
                 // windowPeakLoad(int timewindowInSeconds) : int
                 // windowPeakLoad() : int
-//                try {
-//                    int x = Integer.valueOf(line);
-//                    // compute answer and send back to client
-//                    BigInteger y = fibonacci(x);
-//                    System.err.println("reply: " + y);
-//                    out.println(y);
-//                } catch (NumberFormatException e) {
-//                    // complain about ill-formatted request
-//                    System.err.println("reply: err");
-//                    out.print("err\n");
-//                }
-                // important! our PrintWriter is auto-flushing, but if it were
-                // not:
+                // important! our PrintWriter is auto-flushing, but if it were not:
                 // out.flush();
+                // Perform operations according to request type
+                switch (request.type) {
+                    case "Search":
+                        Future<List<String>> resultSearch = executorService.submit(
+                            () -> wikiMediator.search(request.query, request.limit));
+                        response = new Response<>(request.id, resultSearch.get());
+                        break;
+                    case "getPage":
+                        Future<String> resultGetPage =
+                            executorService.submit(() -> wikiMediator.getPage(request.pageTitle));
+                        break;
+                    case "zeitgeist":
+                        Future<List<String>> resultZeitgeist =
+                            executorService.submit(() -> wikiMediator.zeitgeist(request.limit));
+                        break;
+                    case "trending":
+                        Future<List<String>> resultTrending = executorService.submit(
+                            () -> wikiMediator.trending(request.timeLimitInSeconds,
+                                request.maxitems));
+                        break;
+                    case "windowPeakLoad":
+                        if (request.timeWindowInSeconds != null) {
+                            Future<Integer> resultWindowPeakLoad = executorService.submit(
+                                () -> wikiMediator.windowedPeakLoad(request.timeWindowInSeconds));
+                        } else {
+                            Future<Integer> resultWindowPeakLoad =
+                                executorService.submit(() -> wikiMediator.windowedPeakLoad());
+                        }
+                        break;
+                    case "stop":
+                        response = new Response<>(request.id, "bye");
+                        out.println(new Gson().toJson(response));
+                        socket.close();
+                        out.close();
+                        in.close();
+                        break;
+                }
+
+                out.println(new Gson().toJson(response));
+
             }
         } catch (IOException e) {
             throw new RuntimeException("IOException while trying to read in");
@@ -166,6 +171,8 @@ public class WikiMediatorServer {
         String query;
         String pageTitle;
         int limit;
+        int timeLimitInSeconds;
+        int timeWindowInSeconds;
         int maxitems;
         int timeout;
     }
