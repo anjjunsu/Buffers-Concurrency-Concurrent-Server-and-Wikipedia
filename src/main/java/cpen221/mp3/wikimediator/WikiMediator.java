@@ -34,6 +34,7 @@ public class WikiMediator {
     // key: ID, value: number of times the object has been used by search or getPage
     private ConcurrentHashMap<String, Integer> zeitgeistMap;
     private ConcurrentHashMap<String, ArrayList<Double>> timerMap;
+    private ConcurrentHashMap<Integer, Integer> timeRequestMap;
     //timer for trending and windowedPeakLoad
     private Timer cacheTimer;
     private double currentTime;
@@ -50,6 +51,7 @@ public class WikiMediator {
         wiki = new Wiki.Builder().withDomain("en.wikipedia.org").build();
         zeitgeistMap = new ConcurrentHashMap<>();
         timerMap = new ConcurrentHashMap<>();
+        timeRequestMap = new ConcurrentHashMap<>();
         currentTime = 0;
         cacheTimer = new Timer();
         // Start at time = 0, unit of time flow = 1 second
@@ -66,8 +68,9 @@ public class WikiMediator {
      */
 
     public List<String> search(String query, int limit) {
-        addElementOnZeitgeistMap(zeitgeistMap, query);
-        addElementOnTimerMap(timerMap, query);
+        addElementOnTimeRequestMap();
+        addElementOnZeitgeistMap(query);
+        addElementOnTimerMap(query);
 
         return new ArrayList<>(wiki.search(query, limit));
     }
@@ -80,23 +83,25 @@ public class WikiMediator {
      */
 
     public String getPage(String pageTitle) {
+        addElementOnTimeRequestMap();
+
         try {
             pageObject = cache.get(pageTitle);
         } catch (ObjectDoesNotExistException e) {
-            addElementOnZeitgeistMap(zeitgeistMap, pageTitle);
-            addElementOnTimerMap(timerMap, pageTitle);
+            addElementOnZeitgeistMap(pageTitle);
+            addElementOnTimerMap(pageTitle);
 
             pageObject = new Page(pageTitle, wiki.getPageText(pageTitle));
             cache.put(pageObject);
             return pageObject.content();
         }
 
-        addElementOnZeitgeistMap(zeitgeistMap, pageTitle);
-        addElementOnTimerMap(timerMap, pageTitle);
+        addElementOnZeitgeistMap(pageTitle);
+        addElementOnTimerMap(pageTitle);
         return pageObject.content();
     }
 
-    private void addElementOnZeitgeistMap(Map<String, Integer> zeitgeistMap, String element) {
+    private void addElementOnZeitgeistMap(String element) {
         if (zeitgeistMap.containsKey(element)) {
             zeitgeistMap.put(element, zeitgeistMap.get(element) + 1);
         } else {
@@ -104,7 +109,7 @@ public class WikiMediator {
         }
     }
 
-    private void addElementOnTimerMap(Map<String, ArrayList<Double>> timerMap, String element) {
+    private void addElementOnTimerMap(String element) {
         if (timerMap.containsKey(element)) {
             timerMap.get(element).add(currentTime);
         } else {
@@ -124,6 +129,7 @@ public class WikiMediator {
 
     public List<String> zeitgeist(int limit) {
         // sort the map in non-increasing order
+        addElementOnTimeRequestMap();
         return getOrderedList(zeitgeistMap, limit);
     }
 
@@ -138,7 +144,9 @@ public class WikiMediator {
      */
 
     public List<String> trending(int timeLimitInSeconds, int maxItems) {
+        addElementOnTimeRequestMap();
         LinkedHashMap<String, Integer> timeFilteredMap = new LinkedHashMap<>();
+
         System.out.println(timerMap);
 
         // each index + 1 shows count
@@ -151,7 +159,6 @@ public class WikiMediator {
                 }
             });
         });
-
         return getOrderedList(timeFilteredMap, maxItems);
     }
 
@@ -185,17 +192,57 @@ public class WikiMediator {
     }
 
     /**
-     * @param timeWindowInSeconds
-     * @return
+     * @param timeWindowInSeconds time window length in which maximum number of
+     *                            requests can be found
+     * @return maximum number of requests within given time window
      */
 
     public int windowedPeakLoad(int timeWindowInSeconds) {
+        addElementOnTimeRequestMap();
+        System.out.println(timeRequestMap);
 
-        return 0;
+
+        return findMaxRequests(timeWindowInSeconds);
     }
 
     public int windowedPeakLoad() {
-        return 0;
+        addElementOnTimeRequestMap();
+        System.out.println(timeRequestMap);
+
+        return findMaxRequests(30);
+    }
+
+    private int findMaxRequests(int timeInSeconds) {
+        if (timeInSeconds > currentTime) {
+            AtomicInteger c = new AtomicInteger();
+            timeRequestMap.forEach((x, y) -> {
+                c.addAndGet(timeRequestMap.get(x));
+            });
+            return c.get();
+        } else {
+            int max = 0;
+            double time = currentTime;
+            for (int i = 0; i < time - timeInSeconds; i++) {
+                int c = 0;
+                for (int j = i; j < timeInSeconds + i; j++) {
+                    if (timeRequestMap.containsKey(j)) {
+                        c += timeRequestMap.get(j);
+                    }
+                }
+                max = Math.max(c, max);
+            }
+
+            return max;
+        }
+    }
+
+    private void addElementOnTimeRequestMap() {
+        int currentTimeInt = (int) Math.floor(currentTime);
+        if (timeRequestMap.containsKey(currentTimeInt)) {
+            timeRequestMap.put(currentTimeInt, timeRequestMap.get(currentTimeInt) + 1);
+        } else {
+            timeRequestMap.put(currentTimeInt, 1);
+        }
     }
 
     class TimeHelper extends TimerTask {
