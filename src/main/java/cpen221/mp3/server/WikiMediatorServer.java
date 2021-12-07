@@ -142,10 +142,16 @@ public class WikiMediatorServer {
                     case "stop":
                         response = new Response<>(request.id, "bye");
                         out.println(new Gson().toJson(response));
+                        executorService.shutdown();
                         socket.close();
                         out.close();
                         in.close();
+                        System.exit(0);
                         break;
+
+                    default:
+                        response = new Response<>(request.id, "fail",
+                            "Invalid request type. Please Check your request.");
                 }
 
                 // This PrintWriter is auto-flushing, so we do not have to out.flush() manually.
