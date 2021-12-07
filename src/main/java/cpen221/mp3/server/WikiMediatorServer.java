@@ -105,7 +105,7 @@ public class WikiMediatorServer {
 
                 // Perform operations according to request type
                 switch (request.type) {
-                    case "Search":
+                    case "search":
                         Future<List<String>> resultSearch = executorService.submit(
                             () -> wikiMediator.search(request.query, request.limit));
                         response = new Response<>(request.id, "success", resultSearch.get());
