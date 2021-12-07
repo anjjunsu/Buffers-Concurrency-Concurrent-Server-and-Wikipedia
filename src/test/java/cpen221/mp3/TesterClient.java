@@ -36,7 +36,7 @@ public class TesterClient {
      * Use a WikiMediatorServer to use the WikiMediator services.
      */
     public static void main(String[] args) {
-        String req = "{'id':'1','type':'Search','query':'Barack Obama','limit':'12'}";
+        String req = "{'id':'1','type':'search','query':'Barack Obama','limit':'12'}";
 
         try {
             TesterClient client = new TesterClient("127.0.0.1",
