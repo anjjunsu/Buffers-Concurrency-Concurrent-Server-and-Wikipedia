@@ -90,7 +90,7 @@ public class Task3_Test {
     }
 
     @Test
-    public void testTrending1() throws InterruptedException {
+    public void testTrendingUsingGetPage1() throws InterruptedException {
         WikiMediator wikime = new WikiMediator(FIVE_CAPACITY, TEN_SEC_TO_LIVE);
 
         wikime.getPage("abc");
@@ -103,8 +103,7 @@ public class Task3_Test {
         wikime.getPage("Barack Obama");
 
         // sleep for three seconds
-        TimeUnit.SECONDS.sleep(3);
-
+        TimeUnit.SECONDS.sleep((long) 3.5);
 
         wikime.getPage("Hello");
         wikime.getPage("Hello");
@@ -114,11 +113,11 @@ public class Task3_Test {
         trendingList.add("Barack Obama");
         trendingList.add("Hello");
 
-        Assert.assertEquals(trendingList, wikime.trending(3, 5));
+        Assert.assertEquals(trendingList, wikime.trending(3 , 5));
     }
 
     @Test
-    public void testTrending2() {
+    public void testTrendingUsingGetPage2() throws InterruptedException {
         WikiMediator wikime = new WikiMediator(FIVE_CAPACITY, TEN_SEC_TO_LIVE);
 
         System.out.println(wikime.getPage("abc"));
@@ -131,11 +130,7 @@ public class Task3_Test {
         System.out.println(wikime.getPage("Barack Obama"));
 
         // sleep for three seconds
-        try {
-            Thread.sleep(3 * ONE_SEC);
-        } catch (InterruptedException e) {
-            fail("[Task3 TEST FAIL : test GetUpdatesTime] is interrupted while trying to sleep");
-        }
+        TimeUnit.SECONDS.sleep((long)3.5);
 
         wikime.getPage("Hello");
         wikime.getPage("Hello");
@@ -149,32 +144,57 @@ public class Task3_Test {
     }
 
     @Test
-    public void testTrending3() {
-        WikiMediator wikime = new WikiMediator(TEN_CAPACITY, TEN_SEC_TO_LIVE);
+    public void testTrendingUsingSearch1() throws InterruptedException {
+        WikiMediator wikime = new WikiMediator(FIVE_CAPACITY, TEN_SEC_TO_LIVE);
 
-        wikime.search("Computer Engineering", 2);
-        wikime.search("Computer Engineering", 3);
-        System.out.println(wikime.search("Computer Engineering", 4));
+        wikime.search("abc", 2);
+        wikime.search("abc",3);
+        wikime.search("abc",1);
+        wikime.search("abc",5);
 
-        wikime.search("Verilog", 1);
-        System.out.println(wikime.search("Verilog", 3));
+        wikime.search("Hello",6);
+        wikime.search("Barack Obama",2);
+        wikime.search("Barack Obama",3);
 
-        try {
-            Thread.sleep(4 * ONE_SEC);
-        } catch (InterruptedException e) {
-            fail("[Task3 TEST FAIL : test GetUpdatesTime] is interrupted while trying to sleep");
-        }
+        // sleep for three seconds
+        TimeUnit.SECONDS.sleep((long)3.5);
 
-        wikime.search("Verilog", 4);
-        wikime.search("Verilog", 5);
-
+        wikime.search("Hello",1);
+        wikime.search("Hello",2);
 
         List<String> trendingList = new ArrayList<>();
-        trendingList.add("Verilog");
-        trendingList.add("Computer Engineering");
+        trendingList.add("abc");
+        trendingList.add("Barack Obama");
+        trendingList.add("Hello");
 
-        Assert.assertEquals(trendingList, wikime.trending(6, 5));
+        Assert.assertEquals(trendingList, wikime.trending(3, 5));
     }
 
+    @Test
+    public void testTrendingUsingSearch2() throws InterruptedException {
+        WikiMediator wikime = new WikiMediator(FIVE_CAPACITY, TEN_SEC_TO_LIVE);
+
+        System.out.println(wikime.search("abc",2));
+        wikime.search("abc",4);
+        wikime.search("abc",3);
+        wikime.search("abc",1);
+
+        System.out.println(wikime.search("Hello",2));
+        wikime.search("Barack Obama",3);
+        System.out.println(wikime.search("Barack Obama",0));
+
+        // sleep for three seconds
+        TimeUnit.SECONDS.sleep((long)3.5);
+
+        wikime.search("Hello",1);
+        wikime.search("Hello",3);
+
+        List<String> trendingList = new ArrayList<>();
+        trendingList.add("abc");
+        trendingList.add("Hello");
+        trendingList.add("Barack Obama");
+
+        Assert.assertEquals(trendingList, wikime.trending(5, 5));
+    }
 
 }
