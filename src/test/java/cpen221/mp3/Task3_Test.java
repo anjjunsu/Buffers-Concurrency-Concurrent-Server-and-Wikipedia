@@ -134,4 +134,11 @@ public class Task3_Test {
 
         Assert.assertEquals(3, wikime.windowedPeakLoad(2));
     }
+
+    @Test
+    public void testGetPageCache() {
+        WikiMediator wikime = new WikiMediator(TEN_CAPACITY, TEN_SEC_TO_LIVE);
+        System.out.println(wikime.getPage("UBC"));
+        System.out.println(wikime.getPage("UBC"));
+    }
 }
