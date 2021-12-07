@@ -33,30 +33,6 @@ public class TesterClient {
     }
 
     /**
-     * Use a WikiMediatorServer to use the WikiMediator services.
-     */
-    public static void main(String[] args) {
-        String req = "{'id':'1','type':'search','query':'Barack Obama','limit':'12'}";
-
-        try {
-            TesterClient client = new TesterClient("127.0.0.1",
-                Task4_Test.TEST4_PORT);
-
-            // Send request to the server.
-            client.sendRequest(req);
-            System.out.println("Request to Sever : " + req);
-
-            // Receive response from the server.
-            String response = client.getReply();
-            System.out.println("Response from Server : " + response);
-
-            client.close();
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
-        }
-    }
-
-    /**
      * Send a request to the server. Requires this is "open".
      *
      * @param json to json formatted String which is the request to the server
