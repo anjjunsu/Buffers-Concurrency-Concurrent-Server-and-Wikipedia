@@ -14,6 +14,9 @@ import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import java.io.FileWriter;
+import java.io.IOException;
+
 public class WikiMediator {
 
     /* Representation Invariants */
@@ -39,6 +42,8 @@ public class WikiMediator {
     private Timer cacheTimer;
     private double currentTime;
 
+    private FileWriter cacheWriter;
+
     /**
      * Create a WikiMediator cache with capacity and stalenessInterval
      *
@@ -56,6 +61,12 @@ public class WikiMediator {
         cacheTimer = new Timer();
         // Start at time = 0, unit of time flow = 1 second
         cacheTimer.schedule(new TimeHelper(), 0, MILLIE_SEC);
+
+        try {
+            cacheWriter = new FileWriter("local/.keep");
+        } catch (IOException e) {
+            System.out.println("An error occurred on FileWriter");
+        }
     }
 
     /**
@@ -71,6 +82,12 @@ public class WikiMediator {
         addElementOnTimeRequestMap();
         addElementOnZeitgeistMap(query);
         addElementOnTimerMap(query);
+
+        try {
+            saveDataInLocal();
+        } catch (IOException e) {
+            System.out.println("trouble with writing to file!");
+        }
 
         return new ArrayList<>(wiki.search(query, limit));
     }
@@ -98,6 +115,13 @@ public class WikiMediator {
 
         addElementOnZeitgeistMap(pageTitle);
         addElementOnTimerMap(pageTitle);
+
+        try {
+            saveDataInLocal();
+        } catch (IOException e) {
+            System.out.println("trouble with writing to file!");
+        }
+
         return pageObject.content();
     }
 
@@ -130,6 +154,13 @@ public class WikiMediator {
     public List<String> zeitgeist(int limit) {
         // sort the map in non-increasing order
         addElementOnTimeRequestMap();
+
+        try {
+            saveDataInLocal();
+        } catch (IOException e) {
+            System.out.println("trouble with writing to file!");
+        }
+
         return getOrderedList(zeitgeistMap, limit);
     }
 
@@ -159,6 +190,13 @@ public class WikiMediator {
                 }
             });
         });
+
+        try {
+            saveDataInLocal();
+        } catch (IOException e) {
+            System.out.println("trouble with writing to file!");
+        }
+
         return getOrderedList(timeFilteredMap, maxItems);
     }
 
@@ -201,6 +239,11 @@ public class WikiMediator {
         addElementOnTimeRequestMap();
         System.out.println(timeRequestMap);
 
+        try {
+            saveDataInLocal();
+        } catch (IOException e) {
+            System.out.println("trouble with writing to file!");
+        }
 
         return findMaxRequests(timeWindowInSeconds);
     }
@@ -208,6 +251,12 @@ public class WikiMediator {
     public int windowedPeakLoad() {
         addElementOnTimeRequestMap();
         System.out.println(timeRequestMap);
+
+        try {
+            saveDataInLocal();
+        } catch (IOException e) {
+            System.out.println("trouble with writing to file!");
+        }
 
         return findMaxRequests(30);
     }
@@ -243,6 +292,17 @@ public class WikiMediator {
         } else {
             timeRequestMap.put(currentTimeInt, 1);
         }
+    }
+
+    protected void saveDataInLocal() throws IOException {
+        cacheWriter = new FileWriter("local/.keep");
+        //the first write overwrite previous data
+        cacheWriter.write("zeitgeistMap: " +  zeitgeistMap + "\n");
+
+        // then append the timerMap, and timeRequestMap
+        cacheWriter.append("timerMap: ").append(String.valueOf(timerMap)).append("\n");
+        cacheWriter.append("timeRequestMap: ").append(String.valueOf(timeRequestMap)).append("\n");
+        cacheWriter.close();
     }
 
     class TimeHelper extends TimerTask {
