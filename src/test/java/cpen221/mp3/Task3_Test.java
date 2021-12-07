@@ -114,4 +114,24 @@ public class Task3_Test {
 
         Assert.assertEquals(trendingList, wikime.trending(3, 5));
     }
+
+    // add more tests regarding trending
+
+
+    @Test
+    public void testWindowPeakLoad() throws InterruptedException {
+        WikiMediator wikime = new WikiMediator(TEN_CAPACITY, TEN_SEC_TO_LIVE);
+        wikime.getPage("YMCA");
+        wikime.search("YMCA", 2);
+
+        TimeUnit.SECONDS.sleep(3);
+
+        wikime.getPage("UBC");
+        wikime.getPage("UBC");
+        wikime.getPage("UBC");
+
+        TimeUnit.SECONDS.sleep(3);
+
+        Assert.assertEquals(3, wikime.windowedPeakLoad(2));
+    }
 }
