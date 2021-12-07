@@ -145,8 +145,8 @@ public class WikiMediator {
         timerMap.forEach((x, y) -> {
             AtomicInteger c = new AtomicInteger();
             y.forEach(z -> {
-                c.getAndIncrement();
-                if (z <= timeLimitInSeconds) {
+                if (currentTime - timeLimitInSeconds <= z && z < currentTime) {
+                    c.getAndIncrement();
                     timeFilteredMap.put(x, Integer.valueOf(c.toString()));
                 }
             });

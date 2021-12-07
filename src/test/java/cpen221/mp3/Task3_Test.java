@@ -92,6 +92,11 @@ public class Task3_Test {
     @Test
     public void testTrendingUsingGetPage1() throws InterruptedException {
         WikiMediator wikime = new WikiMediator(FIVE_CAPACITY, TEN_SEC_TO_LIVE);
+        wikime.getPage("Hello");
+        wikime.getPage("Hello");
+
+        // sleep for three seconds
+        TimeUnit.SECONDS.sleep(4);
 
         wikime.getPage("abc");
         wikime.getPage("abc");
@@ -101,66 +106,6 @@ public class Task3_Test {
         wikime.getPage("Hello");
         wikime.getPage("Barack Obama");
         wikime.getPage("Barack Obama");
-
-        // sleep for three seconds
-        TimeUnit.SECONDS.sleep((long) 3.5);
-
-        wikime.getPage("Hello");
-        wikime.getPage("Hello");
-
-        List<String> trendingList = new ArrayList<>();
-        trendingList.add("abc");
-        trendingList.add("Barack Obama");
-        trendingList.add("Hello");
-
-        Assert.assertEquals(trendingList, wikime.trending(3 , 5));
-    }
-
-    @Test
-    public void testTrendingUsingGetPage2() throws InterruptedException {
-        WikiMediator wikime = new WikiMediator(FIVE_CAPACITY, TEN_SEC_TO_LIVE);
-
-        System.out.println(wikime.getPage("abc"));
-        wikime.getPage("abc");
-        wikime.getPage("abc");
-        wikime.getPage("abc");
-
-        System.out.println(wikime.getPage("Hello"));
-        wikime.getPage("Barack Obama");
-        System.out.println(wikime.getPage("Barack Obama"));
-
-        // sleep for three seconds
-        TimeUnit.SECONDS.sleep((long)3.5);
-
-        wikime.getPage("Hello");
-        wikime.getPage("Hello");
-
-        List<String> trendingList = new ArrayList<>();
-        trendingList.add("abc");
-        trendingList.add("Hello");
-        trendingList.add("Barack Obama");
-
-        Assert.assertEquals(trendingList, wikime.trending(5, 5));
-    }
-
-    @Test
-    public void testTrendingUsingSearch1() throws InterruptedException {
-        WikiMediator wikime = new WikiMediator(FIVE_CAPACITY, TEN_SEC_TO_LIVE);
-
-        wikime.search("abc", 2);
-        wikime.search("abc",3);
-        wikime.search("abc",1);
-        wikime.search("abc",5);
-
-        wikime.search("Hello",6);
-        wikime.search("Barack Obama",2);
-        wikime.search("Barack Obama",3);
-
-        // sleep for three seconds
-        TimeUnit.SECONDS.sleep((long)3.5);
-
-        wikime.search("Hello",1);
-        wikime.search("Hello",2);
 
         List<String> trendingList = new ArrayList<>();
         trendingList.add("abc");
@@ -169,32 +114,4 @@ public class Task3_Test {
 
         Assert.assertEquals(trendingList, wikime.trending(3, 5));
     }
-
-    @Test
-    public void testTrendingUsingSearch2() throws InterruptedException {
-        WikiMediator wikime = new WikiMediator(FIVE_CAPACITY, TEN_SEC_TO_LIVE);
-
-        System.out.println(wikime.search("abc",2));
-        wikime.search("abc",4);
-        wikime.search("abc",3);
-        wikime.search("abc",1);
-
-        System.out.println(wikime.search("Hello",2));
-        wikime.search("Barack Obama",3);
-        System.out.println(wikime.search("Barack Obama",0));
-
-        // sleep for three seconds
-        TimeUnit.SECONDS.sleep((long)3.5);
-
-        wikime.search("Hello",1);
-        wikime.search("Hello",3);
-
-        List<String> trendingList = new ArrayList<>();
-        trendingList.add("abc");
-        trendingList.add("Hello");
-        trendingList.add("Barack Obama");
-
-        Assert.assertEquals(trendingList, wikime.trending(5, 5));
-    }
-
 }
