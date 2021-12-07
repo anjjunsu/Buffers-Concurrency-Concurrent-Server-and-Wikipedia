@@ -7,7 +7,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class Task4_Test {
-
+    /** Default port number where the server listens for connections. */
+    public static final int TEST4_PORT = 9012;
 //    // Run the server
 //    @Before
 //    public void runServer() {
@@ -28,7 +29,7 @@ public class Task4_Test {
         int port = 9012;
         int numClients = 10;
         WikiMediator wm = new WikiMediator(capacity, stalenessInterval);
-        WikiMediatorServer wms = new WikiMediatorServer(port, numClients, wm);
+        WikiMediatorServer wms = new WikiMediatorServer(TEST4_PORT, numClients, wm);
         wms.serve();
     }
 //
