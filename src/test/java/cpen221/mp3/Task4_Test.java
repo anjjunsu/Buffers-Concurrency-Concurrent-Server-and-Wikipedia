@@ -1,6 +1,7 @@
 package cpen221.mp3;
 
 import com.google.gson.Gson;
+import cpen221.mp3.server.WikiMediatorServer;
 import cpen221.mp3.wikimediator.WikiMediator;
 import org.junit.Assert;
 import org.junit.Test;
@@ -8,22 +9,34 @@ import org.junit.Test;
 import java.io.IOException;
 import java.util.List;
 
-public class Task4_Test_Client {
+public class Task4_Test {
     /**
      * Must launch the server first before using this test
      * Can launch server in Task4_Test_ServerRun and run the main method
      */
+    /** Default port number where the server listens for connections. */
+    public static final int TEST4_PORT = 9012;
+    public static final int CAPACITY = 24;
+    public static final int STALENESS_INTERVAL = 120;
+
+    // This main class launches the WikiMediator server.
+    public static void main(String[] args) {
+        int numClients = 10;
+        WikiMediator wm = new WikiMediator(CAPACITY, STALENESS_INTERVAL);
+        WikiMediatorServer wms = new WikiMediatorServer(TEST4_PORT, numClients, wm);
+        wms.serve();
+    }
+
     @Test
     public void testSearch() {
         String req = "{'id':'1','type':'search','query':'Barack Obama','limit':'12'}";
         String response = null;
-        WikiMediator reference = new WikiMediator(Task4_Test_ServerRun.CAPACITY, Task4_Test_ServerRun.STALENESS_INTERVAL);
+        WikiMediator reference = new WikiMediator(CAPACITY, STALENESS_INTERVAL);
 
         List<String> refereceSearchResult = reference.search("Barack Obama", 12);
 
         try {
-            TesterClient client = new TesterClient("127.0.0.1",
-                Task4_Test_ServerRun.TEST4_PORT);
+            TesterClient client = new TesterClient("127.0.0.1", TEST4_PORT);
 
             // Send request to the server.
             client.sendRequest(req);
@@ -47,6 +60,19 @@ public class Task4_Test_Client {
         System.out.println("Result using server : ");
         System.out.println(responseFromServer);
     }
+
+    // Test stop request from the client properly shutdowns the server
+    @Test
+    public void testStop() {
+
+    }
+
+    // Test invalid request type properly handled by the server
+    @Test
+    public void testInvalidRequest() {
+
+    }
+
 
     static class Response<T> {
         String id;
