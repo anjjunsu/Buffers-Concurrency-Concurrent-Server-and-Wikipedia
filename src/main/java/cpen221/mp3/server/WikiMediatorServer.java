@@ -22,6 +22,7 @@ public class WikiMediatorServer {
     /* Representation Invariant */
     // serverSocket != null
     // executorService != null
+    // WikiMediator != null
 
     /* Abstract Function */
     // TODO
@@ -59,13 +60,15 @@ public class WikiMediatorServer {
             // block, wait, and listening to a client socket
             try {
                 final Socket socket = serverSocket.accept();
+                try {
+                    handle(socket);
+                } finally {
+                    socket.close();
+                }
             } catch (IOException e) {
                 throw new RuntimeException(
                     "[IOExeption] was thrown while accepting client request.");
             }
-
-            // TODO somehow create new threads and use handle method and then start the thread
-            // TODO maybe executor service submit
         }
     }
 
@@ -102,7 +105,7 @@ public class WikiMediatorServer {
 
                 // Perform operations according to request type
                 switch (request.type) {
-                    case "Search":
+                    case "search":
                         Future<List<String>> resultSearch = executorService.submit(
                             () -> wikiMediator.search(request.query, request.limit));
                         response = new Response<>(request.id, "success", resultSearch.get());
@@ -147,7 +150,6 @@ public class WikiMediatorServer {
 
                 // This PrintWriter is auto-flushing, so we do not have to out.flush() manually.
                 out.println(new Gson().toJson(response));
-
             }
         } catch (IOException e) {
             throw new RuntimeException("IOException while trying to read in");
