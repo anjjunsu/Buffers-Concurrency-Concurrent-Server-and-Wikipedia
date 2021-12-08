@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import java.io.FileWriter;
@@ -20,13 +21,21 @@ import java.io.IOException;
 public class WikiMediator {
 
     /* Representation Invariants */
-    // fill this out
+    // capacity > 0
+    // stalenessInterval > 0 (unit : seconds)
+    // cache, pageObject, zeitgeistMap, timerMap, timeRequestMap do not contain null
+    // no duplicates in cache, pageObject, zeitgeistMap, timerMap, timeRequestMap
+    // currentTime >= 0
 
-    /* Abstract Function */
-    // fill this out
+    /* Abstraction Function */
+    // WikiMediator is a cache that holds information of Wikipedia page, which breaks down into
+    // pageTitle and content, with its capacity being number of Pages that can be added and
+    // stalenessInterval being the amount of time each Page is going to last, in seconds.
+    //
 
     /* Thread Safety */
-    // fill this out
+    // used concurrentHashMap and synchronized methods so that shared objects are not accessed at
+    // the same time, which secures thread safety
 
     public static final int MILLIE_SEC = 1;
 
@@ -261,7 +270,7 @@ public class WikiMediator {
      * return maximum number of request from timeRequestMap within given time
      *
      * @param timeInSeconds time window length in which maximum number of requests found.
-     * @return  maximum number of requests within given time
+     * @return maximum number of requests within given time
      */
 
     private int findMaxRequests(int timeInSeconds) {
@@ -305,17 +314,18 @@ public class WikiMediator {
      * save zeitgeistMap, timerMap, timeRequestMap on local file in string form
      */
 
-    private void saveDataInLocal(){
-        try{
+    private void saveDataInLocal() {
+        try {
             cacheWriter = new FileWriter("local/.keep");
             //the first write overwrite previous data
             cacheWriter.write("zeitgeistMap: " + zeitgeistMap + "\n");
             // then append the timerMap, and timeRequestMap
             cacheWriter.append("timerMap: ").append(String.valueOf(timerMap)).append("\n");
-            cacheWriter.append("timeRequestMap: ").append(String.valueOf(timeRequestMap)).append("\n");
+            cacheWriter.append("timeRequestMap: ").append(String.valueOf(timeRequestMap))
+                .append("\n");
             cacheWriter.close();
 
-        } catch (IOException e){
+        } catch (IOException e) {
             System.out.println("An error occurred on FileWriter");
         }
     }
@@ -330,6 +340,23 @@ public class WikiMediator {
         public synchronized void run() {
             currentTime += 0.001;
         }
+    }
+
+    /**
+     * returns the shortest path between two Wikipedia pages. If the path does not exist, return
+     * an empty list.
+     *
+     * @param pageTitle1 page title in which the path starts with
+     * @param pageTitle2 page title in which the path ends with
+     * @param timeout    duration - in seconds - that is permitted for this operation.
+     *                   If the timeout is exceeded, TimeOutException is thrown.
+     * @return shortest path between pageTitle1 and pageTitle2
+     * @throws TimeoutException Exception which is thrown when timeout is exceeded.
+     */
+    public synchronized List<String> shortestPath(String pageTitle1, String pageTitle2, int timeout)
+        throws
+        TimeoutException {
+        return new ArrayList<String>();
     }
 
 }
