@@ -31,7 +31,10 @@ public class FSFTBuffer<T extends Bufferable> {
     //      and the values represent the most recent used time.
 
     /* Thread Safety */
-    // TODO
+    // Any method which access to the shared object (buffer, timeoutRecord, and lastUsedTimeRecord)
+    //      are synchronized to secure thread safety.
+    // Shared objects such as buffer, timeoutRecord, and lastUsedTimeRecord
+    //      are ConcurrentHashMap to secure thread safety.
 
     public static final int ONE_SEC = 1000;
     /* the default buffer size is 32 objects */
