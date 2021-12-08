@@ -270,4 +270,15 @@ public class Task3_Test {
         System.out.println(wikime.getPage("UBC"));
     }
 
+    @Test
+    public void testZeigeistMapWithoutPriorData() {
+        WikiMediator wikime = new WikiMediator(TEN_CAPACITY, TEN_SEC_TO_LIVE);
+        List<String> zeitgeistList = new ArrayList<>();
+        zeitgeistList.add("CPU");
+        zeitgeistList.add("UBC");
+
+        Assert.assertEquals(zeitgeistList, wikime.zeitgeist(5));
+
+    }
+
 }
