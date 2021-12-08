@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import cpen221.mp3.server.WikiMediatorServer;
 import cpen221.mp3.wikimediator.WikiMediator;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -15,11 +14,10 @@ import java.util.Set;
 import static org.junit.Assert.*;
 
 public class Task4_Test {
-    /**
-     * Must launch the server first before using this test
-     * Can launch server in Task4_Test_ServerRun and run the main method
-     */
+    // Must launch the server before any Task 4 testing
+
     /** Default port number where the server listens for connections. */
+
     public static final int TEST4_PORT = 9012;
     public static final int CAPACITY = 24;
     public static final int STALENESS_INTERVAL = 120;
@@ -139,6 +137,35 @@ public class Task4_Test {
         Assert.assertEquals("fail", responseFromServer.status);
     }
 
+    // Test both getPage and timeout
+    @Test
+    public void testGetPage() {
+        String reqToServer = "{'id':'Taeyang','type':'getPage','pageTitle':'Java'}";
+        String response = null;
+        WikiMediator wiiiiiiiiii = new WikiMediator(CAPACITY, STALENESS_INTERVAL);
+        String reference = wiiiiiiiiii.getPage("Java");
+
+        try {
+            TesterClient client = new TesterClient(HOST_NAME, TEST4_PORT);
+
+            // Send request to the server.
+            System.out.println("++**testGetPage Begin**++");
+            client.sendRequest(reqToServer);
+            System.out.println("Request to Sever : " + reqToServer);
+
+            // Receive response from the server.
+            response = client.getReply();
+            System.out.println("Response from Server : " + response);
+
+            client.close();
+        } catch (IOException e) {
+            fail("Unexpected IOException while constructing a client");
+        }
+
+        Response<String> responseFromServer = new Gson().fromJson(response, Response.class);
+
+        Assert.assertEquals(reference, responseFromServer.response);
+    }
 
     static class Response<T> {
         String id;
