@@ -138,16 +138,19 @@ public class WikiMediatorServer {
                             Future<List<String>> resultSearch = executorService.submit(
                                 () -> wikiMediator.search(request.query, request.limit));
                             if (isTimeout) {
-                                try{
-                                    response = new Response<>(request.id, "success", resultSearch.get(
-                                        request.timeout, TimeUnit.SECONDS));
-                                } catch(TimeoutException e){
+                                try {
+                                    response =
+                                        new Response<>(request.id, "success", resultSearch.get(
+                                            request.timeout, TimeUnit.SECONDS));
+                                } catch (TimeoutException e) {
                                     System.out.println("No response after one second");
                                     resultSearch.cancel(true);
-                                    response = new Response<>(request.id, "fail", "Operation timed out");
+                                    response =
+                                        new Response<>(request.id, "fail", "Operation timed out");
                                 }
                             } else {
-                                response = new Response<>(request.id, "success", resultSearch.get());
+                                response =
+                                    new Response<>(request.id, "success", resultSearch.get());
                             }
                         }
                         break;
@@ -160,7 +163,20 @@ public class WikiMediatorServer {
                             Future<String> resultGetPage =
                                 executorService.submit(
                                     () -> wikiMediator.getPage(request.pageTitle));
-                            response = new Response<>(request.id, "success", resultGetPage.get());
+                            if (isTimeout) {
+                                try {
+                                    response =
+                                        new Response<>(request.id, "success", resultGetPage.get(
+                                            request.timeout, TimeUnit.SECONDS));
+                                } catch (TimeoutException e) {
+                                    System.out.println("No response after one second");
+                                    resultGetPage.cancel(true);
+                                    response =
+                                        new Response<>(request.id, "fail", "Operation timed out");
+                                }
+                            } else {
+                                response = new Response<>(request.id, "success", resultGetPage.get());
+                            }
                         }
                         break;
 
@@ -171,7 +187,21 @@ public class WikiMediatorServer {
                         } else {
                             Future<List<String>> resultZeitgeist =
                                 executorService.submit(() -> wikiMediator.zeitgeist(request.limit));
-                            response = new Response<>(request.id, "success", resultZeitgeist.get());
+                            if (isTimeout) {
+                                try {
+                                    response =
+                                        new Response<>(request.id, "success", resultZeitgeist.get(
+                                            request.timeout, TimeUnit.SECONDS));
+                                } catch (TimeoutException e) {
+                                    System.out.println("No response after one second");
+                                    resultZeitgeist.cancel(true);
+                                    response =
+                                        new Response<>(request.id, "fail", "Operation timed out");
+                                }
+                            } else {
+                                response = new Response<>(request.id, "success", resultZeitgeist.get());
+
+                            }
                         }
                         break;
 
@@ -183,7 +213,20 @@ public class WikiMediatorServer {
                             Future<List<String>> resultTrending = executorService.submit(
                                 () -> wikiMediator.trending(request.timeLimitInSeconds,
                                     request.maxitems));
-                            response = new Response<>(request.id, "success", resultTrending.get());
+                            if (isTimeout) {
+                                try {
+                                    response =
+                                        new Response<>(request.id, "success", resultTrending.get(
+                                            request.timeout, TimeUnit.SECONDS));
+                                } catch (TimeoutException e) {
+                                    System.out.println("No response after one second");
+                                    resultTrending.cancel(true);
+                                    response =
+                                        new Response<>(request.id, "fail", "Operation timed out");
+                                }
+                            } else {
+                                response = new Response<>(request.id, "success", resultTrending.get());
+                            }
                         }
                         break;
 
@@ -191,13 +234,39 @@ public class WikiMediatorServer {
                         if (request.timeWindowInSeconds != null) {
                             Future<Integer> resultWindowPeakLoad = executorService.submit(
                                 () -> wikiMediator.windowedPeakLoad(request.timeWindowInSeconds));
-                            response =
-                                new Response<>(request.id, "success", resultWindowPeakLoad.get());
+                            if (isTimeout) {
+                                try {
+                                    response =
+                                        new Response<>(request.id, "success", resultWindowPeakLoad.get(
+                                            request.timeout, TimeUnit.SECONDS));
+                                } catch (TimeoutException e) {
+                                    System.out.println("No response after one second");
+                                    resultWindowPeakLoad.cancel(true);
+                                    response =
+                                        new Response<>(request.id, "fail", "Operation timed out");
+                                }
+                            } else {
+                                response =
+                                    new Response<>(request.id, "success", resultWindowPeakLoad.get());
+                            }
                         } else {
                             Future<Integer> resultWindowPeakLoad =
                                 executorService.submit(() -> wikiMediator.windowedPeakLoad());
-                            response =
-                                new Response<>(request.id, "success", resultWindowPeakLoad.get());
+                            if (isTimeout) {
+                                try {
+                                    response =
+                                        new Response<>(request.id, "success", resultWindowPeakLoad.get(
+                                            request.timeout, TimeUnit.SECONDS));
+                                } catch (TimeoutException e) {
+                                    System.out.println("No response after one second");
+                                    resultWindowPeakLoad.cancel(true);
+                                    response =
+                                        new Response<>(request.id, "fail", "Operation timed out");
+                                }
+                            } else {
+                                response =
+                                    new Response<>(request.id, "success", resultWindowPeakLoad.get());
+                            }
                         }
                         break;
 
