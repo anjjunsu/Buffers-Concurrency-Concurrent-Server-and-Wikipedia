@@ -8,14 +8,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.Assert.*;
 
 public class Task3_Test {
     public static final int FIVE_CAPACITY = 5;
     public static final int TEN_CAPACITY = 10;
     public static final int FIVE_SEC_TO_LIVE = 5;
     public static final int TEN_SEC_TO_LIVE = 10;
-    public static final int ONE_SEC = 1000;
+    public static final int FIFTY_SEC_TO_LIVE = 50;
+    public static final int FIFTY_CAPACITY = 50;
 
     @Test
     public void testSearch() {
@@ -146,7 +146,7 @@ public class Task3_Test {
     @Test
     public void testTrendingUsingGetPageSearch() throws InterruptedException {
         WikiMediator wikime = new WikiMediator(FIVE_CAPACITY, TEN_SEC_TO_LIVE);
-        wikime.search("Hello",1);
+        wikime.search("Hello", 1);
         wikime.getPage("Hello");
 
         // sleep for three seconds
@@ -185,6 +185,82 @@ public class Task3_Test {
         TimeUnit.SECONDS.sleep(3);
 
         Assert.assertEquals(3, wikime.windowedPeakLoad(2));
+    }
+
+    @Test
+    public void testWindowPeakLoadOerloaded1() throws InterruptedException {
+        WikiMediator wikime = new WikiMediator(FIFTY_CAPACITY, FIFTY_SEC_TO_LIVE);
+        wikime.getPage("YMCA");
+        wikime.search("YMCA", 3);
+
+        TimeUnit.SECONDS.sleep(1);
+
+        wikime.getPage("UBC");
+        wikime.search("UBC", 1);
+        wikime.getPage("UBC");
+        wikime.search("UBC", 2);
+
+        TimeUnit.SECONDS.sleep(1);
+
+        wikime.getPage("Electrical Engineering");
+        wikime.search("Electrical Engineering", 4);
+
+        TimeUnit.SECONDS.sleep(20);
+
+        wikime.getPage("Computer Engineering");
+        wikime.getPage("Computer Engineering");
+        wikime.getPage("Computer Engineering");
+        wikime.getPage("Computer Engineering");
+        wikime.getPage("Computer Engineering");
+        wikime.getPage("Computer Engineering");
+
+        TimeUnit.SECONDS.sleep(5);
+
+        wikime.search("Computer Engineering", 2);
+        wikime.search("Java", 1);
+        wikime.search("Intellij", 2);
+        wikime.getPage("Intellij");
+
+        Assert.assertEquals(8, wikime.windowedPeakLoad(3));
+
+    }
+
+    @Test
+    public void testWindowPeakLoadOerloaded2() throws InterruptedException {
+        WikiMediator wikime = new WikiMediator(FIFTY_CAPACITY, FIFTY_SEC_TO_LIVE);
+        wikime.getPage("YMCA");
+        wikime.search("YMCA", 3);
+
+        TimeUnit.SECONDS.sleep(1);
+
+        wikime.getPage("UBC");
+        wikime.search("UBC", 1);
+        wikime.getPage("UBC");
+        wikime.search("UBC", 2);
+
+        TimeUnit.SECONDS.sleep(1);
+
+        wikime.getPage("Electrical Engineering");
+        wikime.search("Electrical Engineering", 4);
+
+        TimeUnit.SECONDS.sleep(20);
+
+        wikime.getPage("Computer Engineering");
+        wikime.getPage("Computer Engineering");
+        wikime.getPage("Computer Engineering");
+        wikime.getPage("Computer Engineering");
+        wikime.getPage("Computer Engineering");
+        wikime.getPage("Computer Engineering");
+
+        TimeUnit.SECONDS.sleep(5);
+
+        wikime.search("Computer Engineering", 2);
+        wikime.search("Java", 1);
+        wikime.search("Intellij", 2);
+        wikime.getPage("Intellij");
+
+        Assert.assertEquals(6, wikime.windowedPeakLoad(1));
+
     }
 
     @Test
