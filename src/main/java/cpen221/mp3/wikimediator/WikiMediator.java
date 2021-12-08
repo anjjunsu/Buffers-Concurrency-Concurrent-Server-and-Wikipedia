@@ -216,7 +216,7 @@ public class WikiMediator {
         List<String> resultList = new ArrayList<>();
         LinkedHashMap<String, Integer> LmapToSort = new LinkedHashMap<>(mapToSort);
         LinkedHashMap<String, Integer> mapSorted = new LinkedHashMap<>();
-
+        
         LmapToSort.entrySet().stream()
             .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
             .forEach(x -> mapSorted.put(x.getKey(), x.getValue()));
