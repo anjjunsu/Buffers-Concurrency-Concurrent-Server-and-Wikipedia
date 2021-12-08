@@ -83,11 +83,7 @@ public class WikiMediator {
         addElementOnZeitgeistMap(query);
         addElementOnTimerMap(query);
 
-        try {
-            saveDataInLocal();
-        } catch (IOException e) {
-            System.out.println("trouble with writing to file!");
-        }
+        saveDataInLocal();
 
         return new ArrayList<>(wiki.search(query, limit));
     }
@@ -116,14 +112,16 @@ public class WikiMediator {
         addElementOnZeitgeistMap(pageTitle);
         addElementOnTimerMap(pageTitle);
 
-        try {
-            saveDataInLocal();
-        } catch (IOException e) {
-            System.out.println("trouble with writing to file!");
-        }
+        saveDataInLocal();
 
         return pageObject.content();
     }
+
+    /**
+     * add element on zeitgeistMap
+     *
+     * @param element element to add
+     */
 
     private void addElementOnZeitgeistMap(String element) {
         if (zeitgeistMap.containsKey(element)) {
@@ -132,6 +130,12 @@ public class WikiMediator {
             zeitgeistMap.put(element, 1);
         }
     }
+
+    /**
+     * add element on a timerMap
+     *
+     * @param element element to add
+     */
 
     private void addElementOnTimerMap(String element) {
         if (timerMap.containsKey(element)) {
@@ -155,11 +159,7 @@ public class WikiMediator {
         // sort the map in non-increasing order
         addElementOnTimeRequestMap();
 
-        try {
-            saveDataInLocal();
-        } catch (IOException e) {
-            System.out.println("trouble with writing to file!");
-        }
+        saveDataInLocal();
 
         return getOrderedList(zeitgeistMap, limit);
     }
@@ -191,11 +191,7 @@ public class WikiMediator {
             });
         });
 
-        try {
-            saveDataInLocal();
-        } catch (IOException e) {
-            System.out.println("trouble with writing to file!");
-        }
+        saveDataInLocal();
 
         return getOrderedList(timeFilteredMap, maxItems);
     }
@@ -230,6 +226,8 @@ public class WikiMediator {
     }
 
     /**
+     * Return the maximum number of requests done within given time window
+     *
      * @param timeWindowInSeconds time window length in which maximum number of
      *                            requests can be found
      * @return maximum number of requests within given time window
@@ -239,27 +237,33 @@ public class WikiMediator {
         addElementOnTimeRequestMap();
         System.out.println(timeRequestMap);
 
-        try {
-            saveDataInLocal();
-        } catch (IOException e) {
-            System.out.println("trouble with writing to file!");
-        }
+        saveDataInLocal();
 
         return findMaxRequests(timeWindowInSeconds);
     }
+
+    /**
+     * Return the maximum number of requests done within 30 seconds.
+     * Overloaded version of windowedPeakLoad(int timeWindowInSeconds)
+     *
+     * @return maximum number of requests within 30 seconds
+     */
 
     public int windowedPeakLoad() {
         addElementOnTimeRequestMap();
         System.out.println(timeRequestMap);
 
-        try {
-            saveDataInLocal();
-        } catch (IOException e) {
-            System.out.println("trouble with writing to file!");
-        }
+        saveDataInLocal();
 
         return findMaxRequests(30);
     }
+
+    /**
+     * return maximum number of request from timeRequestMap within given time
+     *
+     * @param timeInSeconds time window length in which maximum number of requests found.
+     * @return  maximum number of requests within given time
+     */
 
     private int findMaxRequests(int timeInSeconds) {
         if (timeInSeconds > currentTime) {
@@ -285,6 +289,10 @@ public class WikiMediator {
         }
     }
 
+    /**
+     * add element on timeRequestMap
+     */
+
     private void addElementOnTimeRequestMap() {
         int currentTimeInt = (int) Math.floor(currentTime);
         if (timeRequestMap.containsKey(currentTimeInt)) {
@@ -294,16 +302,28 @@ public class WikiMediator {
         }
     }
 
-    protected void saveDataInLocal() throws IOException {
-        cacheWriter = new FileWriter("local/.keep");
-        //the first write overwrite previous data
-        cacheWriter.write("zeitgeistMap: " +  zeitgeistMap + "\n");
+    /**
+     * save zeitgeistMap, timerMap, timeRequestMap on local file in string form
+     */
 
-        // then append the timerMap, and timeRequestMap
-        cacheWriter.append("timerMap: ").append(String.valueOf(timerMap)).append("\n");
-        cacheWriter.append("timeRequestMap: ").append(String.valueOf(timeRequestMap)).append("\n");
-        cacheWriter.close();
+    private void saveDataInLocal(){
+        try{
+            cacheWriter = new FileWriter("local/.keep");
+            //the first write overwrite previous data
+            cacheWriter.write("zeitgeistMap: " + zeitgeistMap + "\n");
+            // then append the timerMap, and timeRequestMap
+            cacheWriter.append("timerMap: ").append(String.valueOf(timerMap)).append("\n");
+            cacheWriter.append("timeRequestMap: ").append(String.valueOf(timeRequestMap)).append("\n");
+            cacheWriter.close();
+
+        } catch (IOException e){
+            System.out.println("An error occurred on FileWriter");
+        }
     }
+
+    /**
+     * tracks current time in the program
+     */
 
     class TimeHelper extends TimerTask {
 
