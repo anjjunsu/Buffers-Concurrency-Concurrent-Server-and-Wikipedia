@@ -106,25 +106,46 @@ public class WikiMediatorServer {
                 // Perform operations according to request type
                 switch (request.type) {
                     case "search":
-                        Future<List<String>> resultSearch = executorService.submit(
-                            () -> wikiMediator.search(request.query, request.limit));
-                        response = new Response<>(request.id, "success", resultSearch.get());
+                        if (request.query == null || request.limit == null) {
+                            response = new Response<>(request.id, "fail",
+                                "Invalid request format to perform search.");
+                        } else {
+                            Future<List<String>> resultSearch = executorService.submit(
+                                () -> wikiMediator.search(request.query, request.limit));
+                            response = new Response<>(request.id, "success", resultSearch.get());
+                        }
                         break;
                     case "getPage":
-                        Future<String> resultGetPage =
-                            executorService.submit(() -> wikiMediator.getPage(request.pageTitle));
-                        response = new Response<>(request.id, "success", resultGetPage.get());
+                        if (request.pageTitle == null) {
+                            response =
+                                new Response<>(request.id, "fail", "No page title in the request.");
+                        } else {
+                            Future<String> resultGetPage =
+                                executorService.submit(
+                                    () -> wikiMediator.getPage(request.pageTitle));
+                            response = new Response<>(request.id, "success", resultGetPage.get());
+                        }
                         break;
                     case "zeitgeist":
-                        Future<List<String>> resultZeitgeist =
-                            executorService.submit(() -> wikiMediator.zeitgeist(request.limit));
-                        response = new Response<>(request.id, "success", resultZeitgeist.get());
+                        if (request.limit == null) {
+                            response =
+                                new Response<>(request.id, "fail", "No limit for zeitgeist.");
+                        } else {
+                            Future<List<String>> resultZeitgeist =
+                                executorService.submit(() -> wikiMediator.zeitgeist(request.limit));
+                            response = new Response<>(request.id, "success", resultZeitgeist.get());
+                        }
                         break;
                     case "trending":
-                        Future<List<String>> resultTrending = executorService.submit(
-                            () -> wikiMediator.trending(request.timeLimitInSeconds,
-                                request.maxitems));
-                        response = new Response<>(request.id, "success", resultTrending.get());
+                        if (request.timeLimitInSeconds == null || request.maxitems == null) {
+                            response = new Response<>(request.id, "fail",
+                                "Invalid request format for trending.");
+                        } else {
+                            Future<List<String>> resultTrending = executorService.submit(
+                                () -> wikiMediator.trending(request.timeLimitInSeconds,
+                                    request.maxitems));
+                            response = new Response<>(request.id, "success", resultTrending.get());
+                        }
                         break;
                     case "windowPeakLoad":
                         if (request.timeWindowInSeconds != null) {
@@ -153,7 +174,6 @@ public class WikiMediatorServer {
                         response = new Response<>(request.id, "fail",
                             "Invalid request type. Please Check your request.");
                 }
-
                 // This PrintWriter is auto-flushing, so we do not have to out.flush() manually.
                 out.println(new Gson().toJson(response));
             }
