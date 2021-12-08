@@ -1,5 +1,6 @@
 package cpen221.mp3.wikimediator;
 
+import com.google.gson.Gson;
 import cpen221.mp3.fsftbuffer.FSFTBuffer;
 import cpen221.mp3.fsftbuffer.ObjectDoesNotExistException;
 import org.fastily.jwiki.core.Wiki;
@@ -312,14 +313,17 @@ public class WikiMediator {
     private void saveDataInLocal() {
         try {
             cacheWriter = new FileWriter("local/.keep");
-            //the first write overwrite previous data
-            cacheWriter.write("zeitgeistMap: " + zeitgeistMap + "\n");
-            // then append the timerMap, and timeRequestMap
-            cacheWriter.append("timerMap: ").append(String.valueOf(timerMap)).append("\n");
-            cacheWriter.append("timeRequestMap: ").append(String.valueOf(timeRequestMap))
-                .append("\n");
-            cacheWriter.close();
 
+            //the first write overwrite previous data
+            String zMap = new Gson().toJson(zeitgeistMap);
+            cacheWriter.write("zeitgeistMap: " + zMap + "\n");
+
+            // then append the timerMap, and timeRequestMap
+            String tMap = new Gson().toJson(timerMap);
+            cacheWriter.append("timerMap: ").append(tMap).append("\n");
+            String trMap = new Gson().toJson(timeRequestMap);
+            cacheWriter.append("timeRequestMap: ").append(trMap).append("\n");
+            cacheWriter.close();
         } catch (IOException e) {
             System.out.println("An error occurred on FileWriter");
         }
