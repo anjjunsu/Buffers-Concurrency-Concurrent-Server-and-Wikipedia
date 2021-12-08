@@ -8,7 +8,9 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.Assert.*;
 
@@ -67,6 +69,9 @@ public class Task4_Test {
 
         Response<List<String>> responseFromServer = new Gson().fromJson(response, Response.class);
 
+        Set<String> fromWikiMed = new HashSet<>(refereceSearchResult);
+        Set<String> fromServer = new HashSet<>(responseFromServer.response);
+
         // Don't touch. Only look with your eye.
         System.out.println("Result without using server : ");
         System.out.println(refereceSearchResult);
@@ -74,6 +79,8 @@ public class Task4_Test {
         System.out.println("Result using server : ");
         System.out.println(responseFromServer);
         System.out.println("**testSearch End**");
+
+        Assert.assertEquals(fromWikiMed, fromServer);
     }
 
     // Test stop request from the client properly shutdowns the server
