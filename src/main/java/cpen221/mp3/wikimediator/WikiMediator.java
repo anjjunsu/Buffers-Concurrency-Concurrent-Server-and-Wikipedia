@@ -28,7 +28,6 @@ public class WikiMediator {
     /* Thread Safety */
     // fill this out
 
-    public static final int ONE_SEC = 1000; // for timer
     public static final int MILLIE_SEC = 1;
 
     private FSFTBuffer<Page> cache;
@@ -78,7 +77,7 @@ public class WikiMediator {
      * @return list of page titles from query up to limit page titles.
      */
 
-    public List<String> search(String query, int limit) {
+    public synchronized List<String> search(String query, int limit) {
         addElementOnTimeRequestMap();
         addElementOnZeitgeistMap(query);
         addElementOnTimerMap(query);
@@ -95,7 +94,7 @@ public class WikiMediator {
      * @return content with the given page title
      */
 
-    public String getPage(String pageTitle) {
+    public synchronized String getPage(String pageTitle) {
         addElementOnTimeRequestMap();
 
         try {
@@ -155,7 +154,7 @@ public class WikiMediator {
      * @return list of strings that are used in search and getPage requests the most.
      */
 
-    public List<String> zeitgeist(int limit) {
+    public synchronized List<String> zeitgeist(int limit) {
         // sort the map in non-increasing order
         addElementOnTimeRequestMap();
 
@@ -174,7 +173,7 @@ public class WikiMediator {
      * the most within the timeLimitInSeconds.
      */
 
-    public List<String> trending(int timeLimitInSeconds, int maxItems) {
+    public synchronized List<String> trending(int timeLimitInSeconds, int maxItems) {
         addElementOnTimeRequestMap();
         LinkedHashMap<String, Integer> timeFilteredMap = new LinkedHashMap<>();
 
@@ -233,7 +232,7 @@ public class WikiMediator {
      * @return maximum number of requests within given time window
      */
 
-    public int windowedPeakLoad(int timeWindowInSeconds) {
+    public synchronized int windowedPeakLoad(int timeWindowInSeconds) {
         addElementOnTimeRequestMap();
         System.out.println(timeRequestMap);
 
@@ -249,7 +248,7 @@ public class WikiMediator {
      * @return maximum number of requests within 30 seconds
      */
 
-    public int windowedPeakLoad() {
+    public synchronized int windowedPeakLoad() {
         addElementOnTimeRequestMap();
         System.out.println(timeRequestMap);
 
