@@ -186,8 +186,6 @@ public class WikiMediator {
         addElementOnTimeRequestMap();
         LinkedHashMap<String, Integer> timeFilteredMap = new LinkedHashMap<>();
 
-        System.out.println(timerMap);
-
         // each index + 1 shows count
         timerMap.forEach((x, y) -> {
             AtomicInteger c = new AtomicInteger();
@@ -228,8 +226,6 @@ public class WikiMediator {
             }
         });
 
-        System.out.println(mapSorted);
-
         return resultList;
     }
 
@@ -244,7 +240,6 @@ public class WikiMediator {
 
     public synchronized int windowedPeakLoad(int timeWindowInSeconds) {
         addElementOnTimeRequestMap();
-        System.out.println(timeRequestMap);
 
         saveDataInLocal();
 
@@ -260,7 +255,6 @@ public class WikiMediator {
 
     public synchronized int windowedPeakLoad() {
         addElementOnTimeRequestMap();
-        System.out.println(timeRequestMap);
 
         saveDataInLocal();
 
