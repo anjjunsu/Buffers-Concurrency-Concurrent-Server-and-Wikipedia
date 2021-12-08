@@ -38,9 +38,9 @@ public class WikiMediatorServer {
     // Used ExecutorService's newFixedThreadPool to set the maximum number of threads to create.
     // ExecutorService creates threads and allows us to execute tasks on threads asynchronously.
 
-    private ServerSocket serverSocket;
-    private ExecutorService executorService;
-    private WikiMediator wikiMediator;
+    private final ServerSocket serverSocket;
+    private final ExecutorService executorService;
+    private final WikiMediator wikiMediator;
 
     /**
      * Start a server at a given port number, with the ability to process
@@ -118,12 +118,9 @@ public class WikiMediatorServer {
 
                 Request request = new Gson().fromJson(line, Request.class);
                 Response<?> response = null;
-                Boolean isTimeout = false;
+                boolean isTimeout = request.timeout != null;
 
                 // Check client's request specified the timeout or not
-                if (request.timeout != null) {
-                    isTimeout = true;
-                }
 
                 // First, check if required information is not included in the request and reply error message.
                 // Then, check whether the request has timeout
