@@ -23,9 +23,18 @@ public class WikiMediatorServer {
     // serverSocket != null
     // executorService != null
     // WikiMediator != null
+    // port != null
+    // n != null
 
+    /**
+     * Abstraction Function:
+     * AF(r) = a server for instances of a mediator service object for
+     * Wikipedia that can take multiple requests in JSON-format to access
+     * Wikipedia to obtain pages, page texts, and other request
+     * information. If timeout (in seconds) is <= 0, this is considered
+     * as no timeout given, and status will be successful.
     /* Abstract Function */
-    // TODO
+    // WikiM
 
     /* Thread Safety */
     // TODO
@@ -104,6 +113,7 @@ public class WikiMediatorServer {
                 Response<?> response = null;
 
                 // Perform operations according to request type
+                // If required information is not included in the request, reply error message.
                 switch (request.type) {
                     case "search":
                         if (request.query == null || request.limit == null) {
