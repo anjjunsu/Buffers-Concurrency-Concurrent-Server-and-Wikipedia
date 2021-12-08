@@ -4,7 +4,9 @@ import com.google.gson.Gson;
 import cpen221.mp3.server.WikiMediatorServer;
 import cpen221.mp3.wikimediator.WikiMediator;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -24,8 +26,8 @@ public class Task4_Test {
     public static final int ONE_SEC = 1000;
     public static final String HOST_NAME = "127.0.0.1";
 
-    // This main class launches the WikiMediator server.
-    public static void main(String[] args) {
+    @Before
+    public void launchServer() {
         int numClients = 10;
         WikiMediator wm = new WikiMediator(CAPACITY, STALENESS_INTERVAL);
         WikiMediatorServer wms = new WikiMediatorServer(TEST4_PORT, numClients, wm);
@@ -33,11 +35,12 @@ public class Task4_Test {
 
         // Sleep for half second to ensure server is launched before the actual testing
         try {
-            Thread.sleep(ONE_SEC / 2);
+            Thread.sleep(ONE_SEC);
         } catch (InterruptedException e) {
             System.out.println("[Task4 Test] InterruptedException was thrown while sleeping.");
         }
     }
+
 
     // Test WikiMediator search request
     @Test
