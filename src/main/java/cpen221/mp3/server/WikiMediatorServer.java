@@ -15,6 +15,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 
 public class WikiMediatorServer {
@@ -83,6 +85,7 @@ public class WikiMediatorServer {
      * Filter the invalid client request and if request is invalid, respond error message to the client.
      * Execute the requested task according to request type by submit to the executorService.
      * Return the result of the request.
+     *
      * @param socket contains the information about client's request.
      */
     private void handle(Socket socket) {
@@ -115,9 +118,16 @@ public class WikiMediatorServer {
 
                 Request request = new Gson().fromJson(line, Request.class);
                 Response<?> response = null;
+                Boolean isTimeout = false;
 
-                // Perform operations according to request type
-                // If required information is not included in the request, reply error message.
+                // Check client's request specified the timeout or not
+                if (request.timeout != null) {
+                    isTimeout = true;
+                }
+
+                // First, check if required information is not included in the request and reply error message.
+                // Then, check whether the request has timeout
+                // Then, perform operations according to request type
                 switch (request.type) {
 
                     case "search":
@@ -127,7 +137,18 @@ public class WikiMediatorServer {
                         } else {
                             Future<List<String>> resultSearch = executorService.submit(
                                 () -> wikiMediator.search(request.query, request.limit));
-                            response = new Response<>(request.id, "success", resultSearch.get());
+                            if (isTimeout) {
+                                try{
+                                    response = new Response<>(request.id, "success", resultSearch.get(
+                                        request.timeout, TimeUnit.SECONDS));
+                                } catch(TimeoutException e){
+                                    System.out.println("No response after one second");
+                                    resultSearch.cancel(true);
+                                    response = new Response<>(request.id, "fail", "Operation timed out");
+                                }
+                            } else {
+                                response = new Response<>(request.id, "success", resultSearch.get());
+                            }
                         }
                         break;
 
@@ -184,6 +205,13 @@ public class WikiMediatorServer {
                         response = new Response<>(request.id, "bye");
                         out.println(new Gson().toJson(response));
                         executorService.shutdown();
+                        try {
+                            if (!executorService.awaitTermination(800, TimeUnit.MILLISECONDS)) {
+                                executorService.shutdownNow();
+                            }
+                        } catch (InterruptedException e) {
+                            executorService.shutdownNow();
+                        }
                         socket.close();
                         out.close();
                         in.close();
