@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import java.io.FileWriter;
@@ -20,15 +21,22 @@ import java.io.IOException;
 public class WikiMediator {
 
     /* Representation Invariants */
-    // fill this out
+    // capacity > 0
+    // stalenessInterval > 0 (unit : seconds)
+    // cache, pageObject, zeitgeistMap, timerMap, timeRequestMap do not contain null
+    // no duplicates in cache, pageObject, zeitgeistMap, timerMap, timeRequestMap
+    // currentTime >= 0
 
-    /* Abstract Function */
-    // fill this out
+    /* Abstraction Function */
+    // WikiMediator is a cache that holds information of Wikipedia page, which breaks down into
+    // pageTitle and content, with its capacity being number of Pages that can be added and
+    // stalenessInterval being the amount of time each Page is going to last, in seconds.
+    //
 
     /* Thread Safety */
-    // fill this out
+    // used concurrentHashMap and synchronized methods so that shared objects are not accessed at
+    // the same time, which secures thread safety
 
-    public static final int ONE_SEC = 1000; // for timer
     public static final int MILLIE_SEC = 1;
 
     private FSFTBuffer<Page> cache;
@@ -78,16 +86,12 @@ public class WikiMediator {
      * @return list of page titles from query up to limit page titles.
      */
 
-    public List<String> search(String query, int limit) {
+    public synchronized List<String> search(String query, int limit) {
         addElementOnTimeRequestMap();
         addElementOnZeitgeistMap(query);
         addElementOnTimerMap(query);
 
-        try {
-            saveDataInLocal();
-        } catch (IOException e) {
-            System.out.println("trouble with writing to file!");
-        }
+        saveDataInLocal();
 
         return new ArrayList<>(wiki.search(query, limit));
     }
@@ -99,7 +103,7 @@ public class WikiMediator {
      * @return content with the given page title
      */
 
-    public String getPage(String pageTitle) {
+    public synchronized String getPage(String pageTitle) {
         addElementOnTimeRequestMap();
 
         try {
@@ -116,14 +120,16 @@ public class WikiMediator {
         addElementOnZeitgeistMap(pageTitle);
         addElementOnTimerMap(pageTitle);
 
-        try {
-            saveDataInLocal();
-        } catch (IOException e) {
-            System.out.println("trouble with writing to file!");
-        }
+        saveDataInLocal();
 
         return pageObject.content();
     }
+
+    /**
+     * add element on zeitgeistMap
+     *
+     * @param element element to add
+     */
 
     private void addElementOnZeitgeistMap(String element) {
         if (zeitgeistMap.containsKey(element)) {
@@ -132,6 +138,12 @@ public class WikiMediator {
             zeitgeistMap.put(element, 1);
         }
     }
+
+    /**
+     * add element on a timerMap
+     *
+     * @param element element to add
+     */
 
     private void addElementOnTimerMap(String element) {
         if (timerMap.containsKey(element)) {
@@ -151,15 +163,11 @@ public class WikiMediator {
      * @return list of strings that are used in search and getPage requests the most.
      */
 
-    public List<String> zeitgeist(int limit) {
+    public synchronized List<String> zeitgeist(int limit) {
         // sort the map in non-increasing order
         addElementOnTimeRequestMap();
 
-        try {
-            saveDataInLocal();
-        } catch (IOException e) {
-            System.out.println("trouble with writing to file!");
-        }
+        saveDataInLocal();
 
         return getOrderedList(zeitgeistMap, limit);
     }
@@ -174,7 +182,7 @@ public class WikiMediator {
      * the most within the timeLimitInSeconds.
      */
 
-    public List<String> trending(int timeLimitInSeconds, int maxItems) {
+    public synchronized List<String> trending(int timeLimitInSeconds, int maxItems) {
         addElementOnTimeRequestMap();
         LinkedHashMap<String, Integer> timeFilteredMap = new LinkedHashMap<>();
 
@@ -191,11 +199,7 @@ public class WikiMediator {
             });
         });
 
-        try {
-            saveDataInLocal();
-        } catch (IOException e) {
-            System.out.println("trouble with writing to file!");
-        }
+        saveDataInLocal();
 
         return getOrderedList(timeFilteredMap, maxItems);
     }
@@ -230,36 +234,44 @@ public class WikiMediator {
     }
 
     /**
+     * Return the maximum number of requests done within given time window
+     *
      * @param timeWindowInSeconds time window length in which maximum number of
      *                            requests can be found
      * @return maximum number of requests within given time window
      */
 
-    public int windowedPeakLoad(int timeWindowInSeconds) {
+    public synchronized int windowedPeakLoad(int timeWindowInSeconds) {
         addElementOnTimeRequestMap();
         System.out.println(timeRequestMap);
 
-        try {
-            saveDataInLocal();
-        } catch (IOException e) {
-            System.out.println("trouble with writing to file!");
-        }
+        saveDataInLocal();
 
         return findMaxRequests(timeWindowInSeconds);
     }
 
-    public int windowedPeakLoad() {
+    /**
+     * Return the maximum number of requests done within 30 seconds.
+     * Overloaded version of windowedPeakLoad(int timeWindowInSeconds)
+     *
+     * @return maximum number of requests within 30 seconds
+     */
+
+    public synchronized int windowedPeakLoad() {
         addElementOnTimeRequestMap();
         System.out.println(timeRequestMap);
 
-        try {
-            saveDataInLocal();
-        } catch (IOException e) {
-            System.out.println("trouble with writing to file!");
-        }
+        saveDataInLocal();
 
         return findMaxRequests(30);
     }
+
+    /**
+     * return maximum number of request from timeRequestMap within given time
+     *
+     * @param timeInSeconds time window length in which maximum number of requests found.
+     * @return maximum number of requests within given time
+     */
 
     private int findMaxRequests(int timeInSeconds) {
         if (timeInSeconds > currentTime) {
@@ -285,6 +297,10 @@ public class WikiMediator {
         }
     }
 
+    /**
+     * add element on timeRequestMap
+     */
+
     private void addElementOnTimeRequestMap() {
         int currentTimeInt = (int) Math.floor(currentTime);
         if (timeRequestMap.containsKey(currentTimeInt)) {
@@ -294,16 +310,29 @@ public class WikiMediator {
         }
     }
 
-    protected void saveDataInLocal() throws IOException {
-        cacheWriter = new FileWriter("local/.keep");
-        //the first write overwrite previous data
-        cacheWriter.write("zeitgeistMap: " +  zeitgeistMap + "\n");
+    /**
+     * save zeitgeistMap, timerMap, timeRequestMap on local file in string form
+     */
 
-        // then append the timerMap, and timeRequestMap
-        cacheWriter.append("timerMap: ").append(String.valueOf(timerMap)).append("\n");
-        cacheWriter.append("timeRequestMap: ").append(String.valueOf(timeRequestMap)).append("\n");
-        cacheWriter.close();
+    private void saveDataInLocal() {
+        try {
+            cacheWriter = new FileWriter("local/.keep");
+            //the first write overwrite previous data
+            cacheWriter.write("zeitgeistMap: " + zeitgeistMap + "\n");
+            // then append the timerMap, and timeRequestMap
+            cacheWriter.append("timerMap: ").append(String.valueOf(timerMap)).append("\n");
+            cacheWriter.append("timeRequestMap: ").append(String.valueOf(timeRequestMap))
+                .append("\n");
+            cacheWriter.close();
+
+        } catch (IOException e) {
+            System.out.println("An error occurred on FileWriter");
+        }
     }
+
+    /**
+     * tracks current time in the program
+     */
 
     class TimeHelper extends TimerTask {
 
@@ -311,6 +340,23 @@ public class WikiMediator {
         public synchronized void run() {
             currentTime += 0.001;
         }
+    }
+
+    /**
+     * returns the shortest path between two Wikipedia pages. If the path does not exist, return
+     * an empty list.
+     *
+     * @param pageTitle1 page title in which the path starts with
+     * @param pageTitle2 page title in which the path ends with
+     * @param timeout    duration - in seconds - that is permitted for this operation.
+     *                   If the timeout is exceeded, TimeOutException is thrown.
+     * @return shortest path between pageTitle1 and pageTitle2
+     * @throws TimeoutException Exception which is thrown when timeout is exceeded.
+     */
+    public synchronized List<String> shortestPath(String pageTitle1, String pageTitle2, int timeout)
+        throws
+        TimeoutException {
+        return new ArrayList<String>();
     }
 
 }
