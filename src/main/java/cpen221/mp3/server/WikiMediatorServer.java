@@ -26,18 +26,15 @@ public class WikiMediatorServer {
     // port != null
     // n != null
 
-    /**
-     * Abstraction Function:
-     * AF(r) = a server for instances of a mediator service object for
-     * Wikipedia that can take multiple requests in JSON-format to access
-     * Wikipedia to obtain pages, page texts, and other request
-     * information. If timeout (in seconds) is <= 0, this is considered
-     * as no timeout given, and status will be successful.
     /* Abstract Function */
-    // WikiM
+    // WikiMediatorServer is a server that the client can request WikiMediator services
+    //      to obtain the result from the server and if request is invalid, respond error messages.
+    // WikiMediatorServer can handle multiple number of requests concurrently by creating
+    //      up to 'n' threads.
 
     /* Thread Safety */
-    // TODO
+    // Used ExecutorService's newFixedThreadPool to set the maximum number of threads to create.
+    // ExecutorService creates threads and allows us to execute tasks on threads asynchronously.
 
     private ServerSocket serverSocket;
     private ExecutorService executorService;
@@ -81,6 +78,13 @@ public class WikiMediatorServer {
         }
     }
 
+    /**
+     * Read client's request in json formatted String and converts to Request object type.
+     * Filter the invalid client request and if request is invalid, respond error message to the client.
+     * Execute the requested task according to request type by submit to the executorService.
+     * Return the result of the request.
+     * @param socket contains the information about client's request.
+     */
     private void handle(Socket socket) {
         System.err.println("client connected");
         BufferedReader in;
@@ -115,6 +119,7 @@ public class WikiMediatorServer {
                 // Perform operations according to request type
                 // If required information is not included in the request, reply error message.
                 switch (request.type) {
+
                     case "search":
                         if (request.query == null || request.limit == null) {
                             response = new Response<>(request.id, "fail",
@@ -125,6 +130,7 @@ public class WikiMediatorServer {
                             response = new Response<>(request.id, "success", resultSearch.get());
                         }
                         break;
+
                     case "getPage":
                         if (request.pageTitle == null) {
                             response =
@@ -136,6 +142,7 @@ public class WikiMediatorServer {
                             response = new Response<>(request.id, "success", resultGetPage.get());
                         }
                         break;
+
                     case "zeitgeist":
                         if (request.limit == null) {
                             response =
@@ -146,6 +153,7 @@ public class WikiMediatorServer {
                             response = new Response<>(request.id, "success", resultZeitgeist.get());
                         }
                         break;
+
                     case "trending":
                         if (request.timeLimitInSeconds == null || request.maxitems == null) {
                             response = new Response<>(request.id, "fail",
@@ -157,6 +165,7 @@ public class WikiMediatorServer {
                             response = new Response<>(request.id, "success", resultTrending.get());
                         }
                         break;
+
                     case "windowPeakLoad":
                         if (request.timeWindowInSeconds != null) {
                             Future<Integer> resultWindowPeakLoad = executorService.submit(
@@ -170,6 +179,7 @@ public class WikiMediatorServer {
                                 new Response<>(request.id, "success", resultWindowPeakLoad.get());
                         }
                         break;
+
                     case "stop":
                         response = new Response<>(request.id, "bye");
                         out.println(new Gson().toJson(response));
@@ -184,6 +194,7 @@ public class WikiMediatorServer {
                         response = new Response<>(request.id, "fail",
                             "Invalid request type. Please Check your request.");
                 }
+
                 // This PrintWriter is auto-flushing, so we do not have to out.flush() manually.
                 out.println(new Gson().toJson(response));
             }
@@ -208,6 +219,13 @@ public class WikiMediatorServer {
      * This Request contains the client's request to the server.
      */
     private static class Request {
+        /* Representation Invariant */
+        // id != null
+        // type != null
+
+        /* Abstract Function */
+        // Contains information about the client's request.
+
         String id;
         String type;
         String query;
@@ -223,6 +241,13 @@ public class WikiMediatorServer {
      * This Response stores the information about the server's response.
      */
     private static class Response<T> {
+        /* Representation Invariant */
+        // id != null
+        // status != null
+        // response != null
+
+        /* Abstract Function */
+        // Stores the information about the server's respond.
         String id;
         String status;
         T response;
