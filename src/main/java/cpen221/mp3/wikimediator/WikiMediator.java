@@ -234,7 +234,8 @@ public class WikiMediator {
     }
 
     /**
-     * Return the maximum number of requests done within given time window
+     * Return the maximum number of requests done within given time window. The requests made in
+     * current time are not included.
      *
      * @param timeWindowInSeconds time window length in which maximum number of
      *                            requests can be found
@@ -251,8 +252,8 @@ public class WikiMediator {
     }
 
     /**
-     * Return the maximum number of requests done within 30 seconds.
-     * Overloaded version of windowedPeakLoad(int timeWindowInSeconds)
+     * Return the maximum number of requests done within 30 seconds. The requests made in current
+     * time are not included. Overloaded version of windowedPeakLoad(int timeWindowInSeconds).
      *
      * @return maximum number of requests within 30 seconds
      */
@@ -335,7 +336,6 @@ public class WikiMediator {
      */
 
     class TimeHelper extends TimerTask {
-
         @Override
         public synchronized void run() {
             currentTime += 0.001;
