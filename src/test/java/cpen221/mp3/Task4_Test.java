@@ -18,8 +18,9 @@ import static org.junit.Assert.*;
 public class Task4_Test {
     // Must launch the server before any Task 4 testing
 
-    /** Default port number where the server listens for connections. */
-
+    /**
+     * Default port number where the server listens for connections.
+     */
     public static final int TEST4_PORT = 9012;
     public static final int CAPACITY = 24;
     public static final int STALENESS_INTERVAL = 120;

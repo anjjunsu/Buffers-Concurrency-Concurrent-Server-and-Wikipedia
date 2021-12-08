@@ -120,8 +120,6 @@ public class WikiMediatorServer {
                 Response<?> response = null;
                 boolean isTimeout = request.timeout != null;
 
-                // Check client's request specified the timeout or not
-
                 // First, check if required information is not included in the request and reply error message.
                 // Then, check whether the request has timeout
                 // Then, perform operations according to request type
