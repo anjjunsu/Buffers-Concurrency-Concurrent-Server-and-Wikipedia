@@ -5,6 +5,8 @@ import cpen221.mp3.fsftbuffer.FSFTBuffer;
 import cpen221.mp3.fsftbuffer.ObjectDoesNotExistException;
 import org.fastily.jwiki.core.Wiki;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -70,12 +72,6 @@ public class WikiMediator {
         cacheTimer = new Timer();
         // Start at time = 0, unit of time flow = 1 second
         cacheTimer.schedule(new TimeHelper(), 0, MILLIE_SEC);
-
-        try {
-            cacheWriter = new FileWriter("local/.keep");
-        } catch (IOException e) {
-            System.out.println("An error occurred on FileWriter");
-        }
     }
 
     /**
@@ -165,6 +161,11 @@ public class WikiMediator {
      */
 
     public synchronized List<String> zeitgeist(int limit) {
+        // if server was restarted, get the stored data from local
+        if (timeRequestMap.isEmpty()) {
+            getDataFromLocal();
+        }
+
         // sort the map in non-increasing order
         addElementOnTimeRequestMap();
 
@@ -184,6 +185,11 @@ public class WikiMediator {
      */
 
     public synchronized List<String> trending(int timeLimitInSeconds, int maxItems) {
+        // if server was restarted, get the stored data from local
+        if (timeRequestMap.isEmpty()) {
+            getDataFromLocal();
+        }
+
         addElementOnTimeRequestMap();
         LinkedHashMap<String, Integer> timeFilteredMap = new LinkedHashMap<>();
 
@@ -240,6 +246,11 @@ public class WikiMediator {
      */
 
     public synchronized int windowedPeakLoad(int timeWindowInSeconds) {
+        // if server was restarted, get the stored data from local
+        if (timeRequestMap.isEmpty()) {
+            getDataFromLocal();
+        }
+
         addElementOnTimeRequestMap();
 
         saveDataInLocal();
@@ -255,6 +266,11 @@ public class WikiMediator {
      */
 
     public synchronized int windowedPeakLoad() {
+        // if server was restarted, get the stored data from local
+        if (timeRequestMap.isEmpty()) {
+            getDataFromLocal();
+        }
+
         addElementOnTimeRequestMap();
 
         saveDataInLocal();
@@ -311,18 +327,12 @@ public class WikiMediator {
      */
 
     private void saveDataInLocal() {
+        Data data = new Data(zeitgeistMap, timerMap, timeRequestMap);
+        String jsonData = new Gson().toJson(data);
+
         try {
-            cacheWriter = new FileWriter("local/.keep");
-
-            //the first write overwrite previous data
-            String zMap = new Gson().toJson(zeitgeistMap);
-            cacheWriter.write("zeitgeistMap: " + zMap + "\n");
-
-            // then append the timerMap, and timeRequestMap
-            String tMap = new Gson().toJson(timerMap);
-            cacheWriter.append("timerMap: ").append(tMap).append("\n");
-            String trMap = new Gson().toJson(timeRequestMap);
-            cacheWriter.append("timeRequestMap: ").append(trMap).append("\n");
+            cacheWriter = new FileWriter("local/data.txt");
+            cacheWriter.write(jsonData);
             cacheWriter.close();
         } catch (IOException e) {
             System.out.println("An error occurred on FileWriter");
@@ -330,9 +340,66 @@ public class WikiMediator {
     }
 
     /**
-     * tracks current time in the program
+     * get data from local data file that were saved before the server was shut down.
      */
 
+    private void getDataFromLocal() {
+        StringBuilder dataFromLocal = new StringBuilder();
+
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader("local/data.txt"));
+            for (String dataLine = reader.readLine();
+                 dataLine != null;
+                 dataLine = reader.readLine()) {
+                dataFromLocal.append(dataLine);
+            }
+
+            reader.close();
+        } catch (IOException e) {
+            System.out.println("Problem reading data.");
+        }
+
+        Data readFromLocalData = new Gson().fromJson(dataFromLocal.toString(), Data.class);
+        this.zeitgeistMap = readFromLocalData.getZeitgeistMap();
+        this.timerMap = readFromLocalData.getTimerMap();
+        this.timeRequestMap = readFromLocalData.getTimeRequestMap();
+    }
+
+
+    /**
+     * Data is a class that contains zeitgeistMap, timerMap and timeRequestMap.
+     */
+
+    static class Data {
+        private ConcurrentHashMap<String, Integer> zeitgeistMap;
+        private ConcurrentHashMap<String, ArrayList<Double>> timerMap;
+        private ConcurrentHashMap<Integer, Integer> timeRequestMap;
+
+        public Data(ConcurrentHashMap<String, Integer> zMap,
+                    ConcurrentHashMap<String, ArrayList<Double>> tMap,
+                    ConcurrentHashMap<Integer, Integer> trMap) {
+            zeitgeistMap = zMap;
+            timerMap = tMap;
+            timeRequestMap = trMap;
+        }
+
+        ConcurrentHashMap<String, Integer> getZeitgeistMap() {
+            return zeitgeistMap;
+        }
+
+        ConcurrentHashMap<String, ArrayList<Double>> getTimerMap() {
+            return timerMap;
+        }
+
+        ConcurrentHashMap<Integer, Integer> getTimeRequestMap() {
+            return timeRequestMap;
+        }
+
+    }
+
+    /**
+     * tracks current time in the program
+     */
     class TimeHelper extends TimerTask {
         @Override
         public synchronized void run() {
