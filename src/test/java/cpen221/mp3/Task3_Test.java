@@ -90,7 +90,7 @@ public class Task3_Test {
     }
 
     @Test
-    public void testTrendingUsingGetPage1() throws InterruptedException {
+    public void testTrendingUsingGetPage() throws InterruptedException {
         WikiMediator wikime = new WikiMediator(FIVE_CAPACITY, TEN_SEC_TO_LIVE);
         wikime.getPage("Hello");
         wikime.getPage("Hello");
@@ -117,6 +117,58 @@ public class Task3_Test {
 
     // add more tests regarding trending
 
+    @Test
+    public void testTrendingUsingSearch() throws InterruptedException {
+        WikiMediator wikime = new WikiMediator(FIVE_CAPACITY, TEN_SEC_TO_LIVE);
+        wikime.search("Hello", 2);
+        wikime.search("Hello", 3);
+
+        // sleep for three seconds
+        TimeUnit.SECONDS.sleep(4);
+
+        wikime.search("abc", 5);
+        wikime.search("abc", 4);
+        wikime.search("abc", 1);
+        wikime.search("abc", 2);
+
+        wikime.search("Hello", 2);
+        wikime.search("Barack Obama", 3);
+        wikime.search("Barack Obama", 1);
+
+        List<String> trendingList = new ArrayList<>();
+        trendingList.add("abc");
+        trendingList.add("Barack Obama");
+        trendingList.add("Hello");
+
+        Assert.assertEquals(trendingList, wikime.trending(3, 5));
+    }
+
+    @Test
+    public void testTrendingUsingGetPageSearch() throws InterruptedException {
+        WikiMediator wikime = new WikiMediator(FIVE_CAPACITY, TEN_SEC_TO_LIVE);
+        wikime.search("Hello",1);
+        wikime.getPage("Hello");
+
+        // sleep for three seconds
+        TimeUnit.SECONDS.sleep(4);
+
+        wikime.search("abc", 5);
+        wikime.getPage("abc");
+        wikime.search("abc", 1);
+        wikime.search("abc", 2);
+
+        wikime.getPage("Hello");
+        wikime.getPage("Barack Obama");
+        wikime.search("Barack Obama", 1);
+
+        List<String> trendingList = new ArrayList<>();
+        trendingList.add("abc");
+        trendingList.add("Barack Obama");
+        trendingList.add("Hello");
+
+        Assert.assertEquals(trendingList, wikime.trending(3, 5));
+    }
+
 
     @Test
     public void testWindowPeakLoad() throws InterruptedException {
@@ -141,4 +193,5 @@ public class Task3_Test {
         System.out.println(wikime.getPage("UBC"));
         System.out.println(wikime.getPage("UBC"));
     }
+
 }
