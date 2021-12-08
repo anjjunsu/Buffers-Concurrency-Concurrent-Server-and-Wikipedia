@@ -20,6 +20,7 @@ public class TesterClient {
     /* Representation Invariant*/
     // socket, in, out != null
 
+
     /**
      * Make a TesterClient and connect it to a server running on
      * hostname at the specified port.
