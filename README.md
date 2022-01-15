@@ -1,6 +1,6 @@
 **CPEN 221 / Fall 2021 / MP3**
 
-# Buffers, Concurrency and Wikipedia
+# Buffers, Concurrency, Concurrent Server and Wikipedia
 
 This mini-project involves interacting with Wikipedia and performing many operations.
 
